@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, PenTool, Lightbulb, Trophy, User } from 'lucide-react';
+import { useSidebar } from './sidebar-context';
 
 const tabs = [
   { href: '/assignments', label: 'Home', icon: Home },
@@ -14,9 +15,12 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { mobileOpen } = useSidebar();
+
+  if (mobileOpen) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/80 backdrop-blur-lg md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-white/80 backdrop-blur-lg md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around px-2 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;

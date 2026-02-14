@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getNavForRole, type UserRole } from '@/lib/utils/roles';
+import { useSidebar } from './sidebar-context';
 import {
   ClipboardList, FileText, Lightbulb, Trophy, Star, Medal,
   Gift, BarChart3, Settings, LogOut, Menu, X, PenTool,
@@ -31,7 +32,7 @@ interface SidebarProps {
 export function DashboardSidebar({ role, userEmail, children }: SidebarProps) {
   const pathname = usePathname();
   const navItems = getNavForRole(role);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { mobileOpen, setMobileOpen } = useSidebar();
 
   // Close sidebar on route change
   useEffect(() => {
