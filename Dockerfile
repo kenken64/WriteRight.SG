@@ -37,11 +37,12 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 RUN npx turbo run build --filter=@writeright/web
 
 # ── Runner ───────────────────────────────────────────────────────────
-FROM node:18-slim AS runner
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOME=/app
 
 # Copy standalone output (includes server.js + node_modules)
 COPY --from=builder /app/apps/web/.next/standalone ./
