@@ -9,6 +9,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "${{NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}}"
 NEXT_PUBLIC_APP_URL = "${{NEXT_PUBLIC_APP_URL}}"
 
 [deploy]
+startCommand = "node apps/web/server.js"
 healthcheckPath = "/"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
