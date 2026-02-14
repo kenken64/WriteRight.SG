@@ -14,7 +14,7 @@ export default async function AchievementsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">🏆 Achievements</h1>
+      <h1 className="text-2xl font-bold md:text-3xl">🏆 Achievements</h1>
 
       {streak && (
         <div className="mt-6">

@@ -128,11 +128,11 @@ export default async function PerformancePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">My Performance</h1>
+      <h1 className="text-2xl font-bold md:text-3xl">My Performance</h1>
       <p className="text-gray-500 mt-1">{profile.display_name}</p>
 
       {/* Summary cards */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <SummaryCard icon={FileText} label="Total Submissions" value={totalSubmissions} />
         <SummaryCard icon={TrendingUp} label="Avg Score" value={`${avgScore}/30`} />
         <SummaryCard icon={Award} label="Current Band" value={`Band ${latestBand}`} />

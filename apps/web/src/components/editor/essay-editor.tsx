@@ -82,6 +82,7 @@ export function EssayEditor({
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [versionNumber, setVersionNumber] = useState(initialVersionNumber);
   const [submitting, setSubmitting] = useState(false);
+  const [mobileAiOpen, setMobileAiOpen] = useState(false);
 
   // AI state
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -314,13 +315,24 @@ export function EssayEditor({
       </div>
 
       {/* Editor + AI Panel */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 flex-col md:flex-row min-h-0">
         <div className="flex-1 overflow-y-auto">
           <EditorContent editor={editor} />
         </div>
 
+        {/* Mobile AI toggle button */}
         {aiEnabled && (
-          <div className="w-80 flex-shrink-0 overflow-hidden">
+          <button
+            onClick={() => setMobileAiOpen(!mobileAiOpen)}
+            className="fixed bottom-4 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg md:hidden"
+            aria-label="Toggle AI panel"
+          >
+            🤖
+          </button>
+        )}
+
+        {aiEnabled && (
+          <div className={`${mobileAiOpen ? 'block' : 'hidden'} md:block w-full md:w-80 flex-shrink-0 overflow-hidden border-t md:border-t-0 md:border-l max-h-[50vh] md:max-h-none`}>
             <AiPanel
               draftId={draftId}
               suggestions={suggestions}

@@ -20,8 +20,8 @@ interface ScoreCardProps {
 
 export function ScoreCard({ totalScore, band, dimensions, confidence, reviewRecommended }: ScoreCardProps) {
   return (
-    <div className="mt-6 rounded-lg border bg-white p-6">
-      <div className="flex items-center justify-between">
+    <div className="mt-6 rounded-lg border bg-white p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Total Score</p>
           <p className="text-4xl font-bold">{formatScore(totalScore, 30)}</p>

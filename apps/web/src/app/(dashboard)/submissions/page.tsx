@@ -11,7 +11,7 @@ export default async function SubmissionsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Submissions</h1>
+      <h1 className="text-2xl font-bold md:text-3xl">Submissions</h1>
       <div className="mt-6 space-y-4">
         {submissions && submissions.length > 0 ? (
           submissions.map((sub: any) => {
@@ -22,7 +22,7 @@ export default async function SubmissionsPage() {
                 href={`/submissions/${sub.id}`}
                 className="block rounded-lg border bg-white p-4 transition-shadow hover:shadow-md"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="font-medium">
                       {sub.assignment?.prompt?.slice(0, 80)}...

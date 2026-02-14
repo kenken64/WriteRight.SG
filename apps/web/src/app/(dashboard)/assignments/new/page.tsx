@@ -55,8 +55,8 @@ export default function NewAssignmentPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold">Create Assignment</h1>
+    <div className="mx-auto w-full max-w-2xl">
+      <h1 className="text-2xl font-bold md:text-3xl">Create Assignment</h1>
       <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium">Essay Type</label>

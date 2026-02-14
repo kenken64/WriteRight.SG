@@ -17,13 +17,13 @@ export default async function AssignmentDetailPage({ params }: Props) {
   if (!assignment) notFound();
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="flex items-start justify-between">
-        <div>
+    <div className="mx-auto w-full max-w-3xl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
           <Link href="/assignments" className="text-sm text-muted-foreground hover:underline">
             ← Back to Assignments
           </Link>
-          <h1 className="mt-2 text-2xl font-bold">{assignment.prompt}</h1>
+          <h1 className="mt-2 text-2xl font-bold md:text-3xl break-words">{assignment.prompt}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {assignment.essay_type} · {assignment.essay_sub_type} · {assignment.word_count_min}-
             {assignment.word_count_max} words

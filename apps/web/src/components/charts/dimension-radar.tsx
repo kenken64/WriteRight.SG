@@ -13,7 +13,7 @@ export function DimensionRadar({ data }: DimensionRadarProps) {
   }));
 
   return (
-    <div className="w-full h-[300px]">
+    <div className="w-full h-[250px] sm:h-[300px]">
       <h3 className="text-sm font-medium text-gray-500 mb-2">Dimension Breakdown</h3>
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={normalized}>

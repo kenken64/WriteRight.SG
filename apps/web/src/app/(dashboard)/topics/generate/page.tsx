@@ -21,7 +21,7 @@ export default function GenerateTopicsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <h1 className="text-2xl font-bold">Generate Topics</h1>
 
       <div className="mt-6 space-y-6">

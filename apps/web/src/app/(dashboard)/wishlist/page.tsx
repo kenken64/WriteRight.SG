@@ -31,8 +31,8 @@ export default function WishlistPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">⭐ My Wishlist</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold md:text-3xl">⭐ My Wishlist</h1>
         <button
           onClick={() => setShowAdd(!showAdd)}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white"

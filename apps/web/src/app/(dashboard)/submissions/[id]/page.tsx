@@ -20,13 +20,13 @@ export default async function SubmissionDetailPage({ params }: Props) {
   const status = formatStatus(submission.status);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto w-full max-w-3xl">
       <Link href="/submissions" className="text-sm text-muted-foreground hover:underline">
         ← Back to Submissions
       </Link>
 
-      <div className="mt-4 flex items-start justify-between">
-        <h1 className="text-2xl font-bold">Submission</h1>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <h1 className="text-2xl font-bold md:text-3xl">Submission</h1>
         <span className={`rounded-full px-3 py-1 text-sm ${status.color}`}>{status.label}</span>
       </div>
 
@@ -52,7 +52,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
       )}
 
       {submission.status === 'evaluated' && (
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
             href={`/submissions/${params.id}/feedback`}
             className="flex-1 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-white hover:bg-primary/90"

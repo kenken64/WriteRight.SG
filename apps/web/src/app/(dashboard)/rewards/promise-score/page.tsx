@@ -15,7 +15,7 @@ export default async function PromiseScorePage() {
     .single();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <Link href="/rewards" className="text-sm text-muted-foreground hover:underline">
         ← Back to Rewards
       </Link>

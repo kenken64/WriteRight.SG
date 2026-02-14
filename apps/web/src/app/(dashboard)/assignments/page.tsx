@@ -10,11 +10,11 @@ export default async function AssignmentsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Assignments</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold md:text-3xl">Assignments</h1>
         <Link
           href="/assignments/new"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 min-h-[44px] flex items-center justify-center"
         >
           New Assignment
         </Link>
@@ -28,7 +28,7 @@ export default async function AssignmentsPage() {
               href={`/assignments/${a.id}`}
               className="block rounded-lg border bg-white p-4 transition-shadow hover:shadow-md"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h3 className="font-medium">{a.prompt.slice(0, 100)}...</h3>
                   <p className="mt-1 text-sm text-muted-foreground">

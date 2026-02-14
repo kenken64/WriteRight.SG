@@ -70,8 +70,8 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-bold">Settings</h1>
+      <div className="mx-auto w-full max-w-2xl">
+        <h1 className="text-2xl font-bold md:text-3xl">Settings</h1>
         <div className="mt-8 space-y-8">
           <div className="h-40 animate-pulse rounded-lg border bg-gray-50" />
           <div className="h-32 animate-pulse rounded-lg border bg-gray-50" />
@@ -81,8 +81,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="mx-auto w-full max-w-2xl">
+      <h1 className="text-2xl font-bold md:text-3xl">Settings</h1>
 
       <div className="mt-8 space-y-8">
         {/* Profile */}

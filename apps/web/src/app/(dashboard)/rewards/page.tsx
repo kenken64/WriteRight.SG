@@ -22,8 +22,8 @@ export default async function RewardsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">🎁 Rewards</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold md:text-3xl">🎁 Rewards</h1>
         <Link
           href="/rewards/promise-score"
           className="rounded-md border px-4 py-2 text-sm hover:bg-muted"

@@ -12,12 +12,12 @@ export default async function TrophyCasePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">🏆 Trophy Case</h1>
+      <h1 className="text-2xl font-bold md:text-3xl">🏆 Trophy Case</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         All your earned and received rewards!
       </p>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {trophies && trophies.length > 0 ? (
           trophies.map((trophy: any) => (
             <TrophyCard

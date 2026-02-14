@@ -18,9 +18,9 @@ export default async function AnalyticsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">📊 Analytics</h1>
+      <h1 className="text-2xl font-bold md:text-3xl">📊 Analytics</h1>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-lg border bg-white p-6">
           <h2 className="font-medium">Score Trend</h2>
           <div className="mt-4">

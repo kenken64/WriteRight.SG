@@ -18,7 +18,7 @@ export default function NewSubmissionPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <h1 className="text-2xl font-bold">Submit Essay</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Upload photos of your handwritten essay. We support up to 8 images per submission.

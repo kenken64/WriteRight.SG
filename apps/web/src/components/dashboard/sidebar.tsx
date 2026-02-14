@@ -1,11 +1,12 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getNavForRole, type UserRole } from '@/lib/utils/roles';
 import {
   ClipboardList, FileText, Lightbulb, Trophy, Star, Medal,
-  Gift, BarChart3, Settings, LogOut,
+  Gift, BarChart3, Settings, LogOut, Menu, X, PenTool,
 } from 'lucide-react';
 
 const iconMap: Record<string, React.ElementType> = {
@@ -18,6 +19,7 @@ const iconMap: Record<string, React.ElementType> = {
   'gift': Gift,
   'bar-chart-3': BarChart3,
   'settings': Settings,
+  'pen-tool': PenTool,
 };
 
 interface SidebarProps {
@@ -28,20 +30,46 @@ interface SidebarProps {
 export function DashboardSidebar({ role, userEmail }: SidebarProps) {
   const pathname = usePathname();
   const navItems = getNavForRole(role);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  return (
-    <aside className="flex w-64 flex-col border-r bg-white">
+  // Close sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
+  const sidebarContent = (
+    <>
       <div className="border-b p-4">
-        <Link href="/" className="text-xl font-bold text-primary">
-          WriteRight SG
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold text-primary">
+            WriteRight SG
+          </Link>
+          {/* Close button - mobile only */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="flex h-10 w-10 items-center justify-center rounded-md hover:bg-muted md:hidden"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         <p className="mt-1 truncate text-xs text-muted-foreground">{userEmail}</p>
         <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs capitalize text-primary">
           {role}
         </span>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {navItems.map((item) => {
           const Icon = iconMap[item.icon] ?? ClipboardList;
           const isActive = pathname.startsWith(item.href);
@@ -49,13 +77,13 @@ export function DashboardSidebar({ role, userEmail }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors min-h-[44px] ${
                 isActive
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-5 w-5 flex-shrink-0" />
               {item.label}
             </Link>
           );
@@ -66,13 +94,48 @@ export function DashboardSidebar({ role, userEmail }: SidebarProps) {
         <form action="/api/v1/auth/logout" method="POST">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground min-h-[44px]"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-5 w-5" />
             Log out
           </button>
         </form>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger button - rendered via portal-like approach in layout */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-md bg-white shadow-md md:hidden"
+        aria-label="Open menu"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      {/* Mobile overlay backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar - slide in */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white shadow-xl transition-transform duration-300 ease-in-out md:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar - static */}
+      <aside className="hidden w-64 flex-shrink-0 flex-col border-r bg-white md:flex">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
