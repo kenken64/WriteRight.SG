@@ -47,61 +47,137 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50">
-      <div className="w-full max-w-md rounded-lg border bg-white p-8 shadow-sm">
-        <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
-          &larr; Back to homepage
-        </Link>
-        <h1 className="mt-3 text-2xl font-bold">Log in to WriteRight</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-primary hover:underline">
-            Sign up
+    <div className="flex min-h-screen">
+      {/* Left panel — branding (hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-between bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white">
+        <div>
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-3xl">✏️</span>
+            <span className="text-2xl font-bold">WriteRight SG</span>
           </Link>
+        </div>
+        
+        <div>
+          <h2 className="text-3xl font-bold leading-tight">
+            Better essays start<br />with better feedback.
+          </h2>
+          <p className="mt-4 text-lg text-blue-100 leading-relaxed">
+            AI-powered marking aligned to Singapore&apos;s O-Level English syllabus. 
+            Get instant, specific feedback that helps you improve.
+          </p>
+          
+          <div className="mt-10 grid grid-cols-2 gap-6">
+            <div>
+              <p className="text-3xl font-bold">70%+</p>
+              <p className="mt-1 text-sm text-blue-200">Teacher agreement rate</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold">&lt;5 min</p>
+              <p className="mt-1 text-sm text-blue-200">Feedback delivery</p>
+            </div>
+          </div>
+        </div>
+        
+        <p className="text-sm text-blue-200">
+          © {new Date().getFullYear()} WriteRight SG
         </p>
+      </div>
 
-        <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-          )}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            {fieldErrors.email && (
-              <p className="mt-1 text-xs text-destructive">{fieldErrors.email}</p>
-            )}
+      {/* Right panel — login form */}
+      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-16">
+        <div className="mx-auto w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="mb-8 lg:hidden">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-2xl">✏️</span>
+              <span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span>
+            </Link>
           </div>
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            {fieldErrors.password && (
-              <p className="mt-1 text-xs text-destructive">{fieldErrors.password}</p>
-            )}
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Welcome back</h1>
+            <p className="mt-2 text-sm text-gray-500">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">
+                Sign up for free
+              </Link>
+            </p>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Log in'}
-          </button>
-        </form>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                <span className="mt-0.5">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className={`mt-1.5 block w-full rounded-xl border ${fieldErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500'} bg-gray-50 px-4 py-3 text-sm transition-colors focus:bg-white focus:outline-none focus:ring-1`}
+              />
+              {fieldErrors.email && (
+                <p className="mt-1.5 text-xs text-red-500">{fieldErrors.email}</p>
+              )}
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-700">
+                  Forgot password?
+                </Link>
+              </div>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className={`mt-1.5 block w-full rounded-xl border ${fieldErrors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500'} bg-gray-50 px-4 py-3 text-sm transition-colors focus:bg-white focus:outline-none focus:ring-1`}
+              />
+              {fieldErrors.password && (
+                <p className="mt-1.5 text-xs text-red-500">{fieldErrors.password}</p>
+              )}
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                'Log in'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-xs text-gray-400">
+              By logging in, you agree to our Terms of Service and Privacy Policy.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
