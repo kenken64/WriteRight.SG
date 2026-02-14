@@ -1,0 +1,33 @@
+node_modules
+.next
+.git
+.gitignore
+
+# Tests
+**/__tests__
+**/*.test.*
+**/*.spec.*
+coverage
+
+# Docs
+*.md
+LICENSE
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Supabase local dev
+supabase
+
+# Scripts
+scripts
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db

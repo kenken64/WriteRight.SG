@@ -1,0 +1,59 @@
+'use client';
+
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useRequestRewrite } from '@/lib/api/client';
+import { DiffView } from '@/components/feedback/diff-view';
+import Link from 'next/link';
+
+export default function RewritePage() {
+  const params = useParams<{ id: string }>();
+  const [mode, setMode] = useState<'exam_optimised' | 'clarity_optimised'>('exam_optimised');
+  const requestRewrite = useRequestRewrite();
+
+  const handleGenerate = () => {
+    requestRewrite.mutate({ submissionId: params.id, mode });
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      <Link href={`/submissions/${params.id}`} className="text-sm text-muted-foreground hover:underline">
+        ← Back to Submission
+      </Link>
+
+      <h1 className="mt-4 text-2xl font-bold">Model Rewrite</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        ⚠️ Reference Model Answer — for learning purposes only. The rewrite is pitched one band
+        above your current level.
+      </p>
+
+      <div className="mt-6 flex gap-3">
+        {(['exam_optimised', 'clarity_optimised'] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`rounded-md border px-4 py-2 text-sm ${
+              mode === m ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground'
+            }`}
+          >
+            {m === 'exam_optimised' ? '🎯 Exam-Optimised' : '✨ Clarity-Optimised'}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={handleGenerate}
+        disabled={requestRewrite.isPending}
+        className="mt-4 rounded-md bg-primary px-6 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+      >
+        {requestRewrite.isPending ? 'Generating...' : 'Generate Rewrite'}
+      </button>
+
+      {requestRewrite.isSuccess && (
+        <div className="mt-8">
+          <DiffView original="[Original text]" rewritten="[Rewritten text]" />
+        </div>
+      )}
+    </div>
+  );
+}

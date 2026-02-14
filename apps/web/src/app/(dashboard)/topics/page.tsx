@@ -1,0 +1,88 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useTopics } from '@/lib/api/client';
+import { TopicCard } from '@/components/dashboard/topic-card';
+import { createClient } from '@/lib/supabase/client';
+
+const categoryFilters = [
+  { label: 'All', value: '' },
+  { label: 'Environment', value: 'environment' },
+  { label: 'Technology', value: 'technology' },
+  { label: 'Social Issues', value: 'social_issues' },
+  { label: 'Education', value: 'education' },
+  { label: 'Health', value: 'health' },
+  { label: 'Current Affairs', value: 'current_affairs' },
+];
+
+export default function TopicsPage() {
+  const [category, setCategory] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+    });
+  }, []);
+
+  const filters = category ? { category } : undefined;
+  const { data: topics, isLoading } = useTopics(filters);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Topic Bank</h1>
+        <Link
+          href="/topics/generate"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+        >
+          Generate Topics
+        </Link>
+      </div>
+
+      {/* Filters */}
+      <div className="mt-6 flex flex-wrap gap-3">
+        {categoryFilters.map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => setCategory(cat.value)}
+            className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+              category === cat.value
+                ? 'border-primary bg-primary/10 text-primary font-medium'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="mt-8 text-center text-sm text-muted-foreground">Loading topics...</div>
+      )}
+
+      {!isLoading && (!topics || topics.length === 0) && (
+        <div className="mt-8 text-center">
+          <p className="text-muted-foreground">No topics found.</p>
+          <Link
+            href="/topics/generate"
+            className="mt-2 inline-block text-sm text-primary hover:underline"
+          >
+            Generate your first topic
+          </Link>
+        </div>
+      )}
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {topics?.map((topic) => (
+          <TopicCard
+            key={topic.id}
+            topic={topic}
+            isOwner={userId === topic.created_by}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
