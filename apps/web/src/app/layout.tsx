@@ -9,11 +9,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'WriteRight SG — AI Essay Feedback for O-Level Students',
+  title: 'WriteRight SG — AI Essay Feedback for Singapore Secondary School Students',
   description:
     'Get instant, MOE-aligned feedback on your English essays. Aligned to the 1184 syllabus with situational and continuous writing rubrics.',
   icons: {
-    icon: '/favicon.svg',
+    icon: '/favicon.png',
   },
 };
 

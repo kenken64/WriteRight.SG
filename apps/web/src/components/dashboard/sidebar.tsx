@@ -53,7 +53,8 @@ export function DashboardSidebar({ role, userEmail, children }: SidebarProps) {
     <>
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary">
+            <img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" />
             WriteRight SG
           </Link>
           {/* Close button - mobile only */}
@@ -124,7 +125,10 @@ export function DashboardSidebar({ role, userEmail, children }: SidebarProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-bold text-primary">WriteRight SG</h1>
+          <h1 className="flex-1 text-center text-lg font-bold text-primary flex items-center justify-center gap-2">
+            <img src="/logo.jpg" alt="WriteRight AI" className="h-7 w-7 rounded-full object-cover" />
+            WriteRight SG
+          </h1>
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs capitalize text-primary">
             {role}
           </span>

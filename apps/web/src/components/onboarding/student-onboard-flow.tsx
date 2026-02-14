@@ -10,8 +10,8 @@ type Level = 'sec3' | 'sec4' | 'sec5';
 
 const levels: { value: Level; label: string; description: string; icon: React.ElementType }[] = [
   { value: 'sec3', label: 'Secondary 3', description: 'Building strong essay foundations', icon: BookOpen },
-  { value: 'sec4', label: 'Secondary 4', description: 'Preparing for O-Level English', icon: PenTool },
-  { value: 'sec5', label: 'Secondary 5', description: 'Advanced O-Level preparation', icon: GraduationCap },
+  { value: 'sec4', label: 'Secondary 4', description: 'Preparing for English exams', icon: PenTool },
+  { value: 'sec5', label: 'Secondary 5', description: 'Advanced exam preparation', icon: GraduationCap },
 ];
 
 interface Props {

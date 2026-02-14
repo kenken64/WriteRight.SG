@@ -60,7 +60,7 @@ export default function RegisterPage() {
         <div>
           <Link href="/" className="flex items-center gap-2">
             <span className="text-3xl">✏️</span>
-            <span className="text-2xl font-bold">WriteRight SG</span>
+            <div className="flex items-center gap-3"><img src="/logo.jpg" alt="WriteRight AI" className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">WriteRight SG</span></div>
           </Link>
         </div>
         
@@ -99,7 +99,7 @@ export default function RegisterPage() {
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-2xl">✏️</span>
-              <span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span>
+              <div className="flex items-center gap-2"><img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span></div>
             </Link>
           </div>
 

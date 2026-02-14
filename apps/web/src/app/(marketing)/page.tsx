@@ -11,7 +11,7 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl">✏️</span>
-            <span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span>
+            <div className="flex items-center gap-2"><img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span></div>
           </Link>
           <nav className="flex items-center gap-1.5 sm:gap-3">
             <Link href="/login" className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
@@ -50,7 +50,7 @@ export default function LandingPage() {
               
               <p className="mx-auto mt-6 max-w-xl text-base text-gray-500 sm:text-lg leading-relaxed">
                 Get instant, rubric-aligned feedback on English essays. Real-time scoring as you write. 
-                Track improvement over time. Built specifically for O-Level preparation.
+                Track improvement over time. Built specifically for Singapore secondary school students.
               </p>
               
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">

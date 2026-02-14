@@ -53,7 +53,7 @@ export default function LoginPage() {
         <div>
           <Link href="/" className="flex items-center gap-2">
             <span className="text-3xl">✏️</span>
-            <span className="text-2xl font-bold">WriteRight SG</span>
+            <div className="flex items-center gap-3"><img src="/logo.jpg" alt="WriteRight AI" className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">WriteRight SG</span></div>
           </Link>
         </div>
         
@@ -62,7 +62,7 @@ export default function LoginPage() {
             Better essays start<br />with better feedback.
           </h2>
           <p className="mt-4 text-lg text-blue-100 leading-relaxed">
-            AI-powered marking aligned to Singapore&apos;s O-Level English syllabus. 
+            AI-powered marking aligned to Singapore&apos;s Singapore secondary school English syllabus. 
             Get instant, specific feedback that helps you improve.
           </p>
           
@@ -90,7 +90,7 @@ export default function LoginPage() {
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-2xl">✏️</span>
-              <span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span>
+              <div className="flex items-center gap-2"><img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span></div>
             </Link>
           </div>
 
