@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WishlistCard } from '@/components/rewards/wishlist-card';
 import { useWishlist, useAddWishlistItem, useClaimReward } from '@/lib/api/client';
 import { getRewardEmoji } from '@/lib/utils/format';
+import { createClient } from '@/lib/supabase/client';
 
 const rewardTypes = ['treat', 'screen_time', 'book', 'activity', 'money', 'creative', 'custom'] as const;
 
@@ -12,13 +13,21 @@ export default function WishlistPage() {
   const [title, setTitle] = useState('');
   const [rewardType, setRewardType] = useState<typeof rewardTypes[number]>('treat');
 
-  // TODO: Get studentId from auth context
-  const studentId = '';
+  const [studentId, setStudentId] = useState('');
   const { data: items } = useWishlist(studentId);
   const addItem = useAddWishlistItem();
   const claimReward = useClaimReward();
 
+  // Get current user's ID from Supabase auth
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setStudentId(user.id);
+    });
+  }, []);
+
   const handleAdd = async () => {
+    if (!studentId) return;
     await addItem.mutateAsync({
       student_id: studentId,
       title,
