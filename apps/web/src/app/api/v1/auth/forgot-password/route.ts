@@ -3,12 +3,8 @@ import { Resend } from 'resend';
 import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
-const resend = new Resend(process.env.RESEND_API_KEY!);
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,13 +14,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Look up user by email (don't reveal if user exists or not)
-    const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
-    const user = userData?.users?.find(
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+
+    // Look up user by email in auth.users via admin API
+    const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const user = listData?.users?.find(
       (u) => u.email?.toLowerCase() === email.toLowerCase(),
     );
 
-    // Always return success (don't leak user existence)
+    // Always return success to avoid leaking user existence
     if (!user) {
       return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' });
     }
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
     const resetUrl = `${origin}/reset-password?token=${rawToken}`;
 
     // Send email via Resend
+    const resend = new Resend(process.env.RESEND_API_KEY!);
     const brandName = process.env.NEXT_PUBLIC_APP_NAME || 'WriteRight';
     const senderEmail = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
 
