@@ -319,6 +319,9 @@ Two modes for generating practice essay topics:
 - POST /v1/auth/register
 - POST /v1/auth/login
 - POST /v1/auth/refresh
+- POST /v1/auth/forgot-password — sends password reset email via Supabase
+- POST /v1/auth/reset-password — updates password using reset token
+- GET /v1/auth/callback — exchanges Supabase auth code for session (used by email reset links)
 - POST /v1/students
 - POST /v1/students/{studentId}/link-parent
 - GET /v1/users/me
