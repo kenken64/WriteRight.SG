@@ -1,4 +1,5 @@
 import { chatCompletion } from "../shared/openai-client";
+import { MODEL_FAST } from "../shared/model-config";
 import type { AnalysisRequest, AnalysisResult } from "./types";
 
 const SYSTEM_PROMPT = `You are an essay analysis engine for Singapore secondary school students.
@@ -29,7 +30,7 @@ ${req.text}
 """`;
 
   const raw = await chatCompletion(SYSTEM_PROMPT, userPrompt, {
-    model: "gpt-4o-mini",
+    model: MODEL_FAST,
     temperature: 0.2,
     maxTokens: 1500,
     jsonMode: true,

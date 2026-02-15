@@ -1,4 +1,5 @@
 import { chatCompletion } from "../shared/openai-client";
+import { MODEL_FAST } from "../shared/model-config";
 import type { GrammarCheckRequest, GrammarCheckResult, GrammarAnnotation } from "./types";
 
 const SYSTEM_PROMPT = `You are a grammar checker for Singapore secondary school English essays.
@@ -31,7 +32,7 @@ export async function checkGrammar(req: GrammarCheckRequest): Promise<GrammarChe
   const userPrompt = `Check this ${req.essayType ?? "essay"} text:\n\n"""${req.text}"""`;
 
   const raw = await chatCompletion(SYSTEM_PROMPT, userPrompt, {
-    model: "gpt-4o-mini",
+    model: MODEL_FAST,
     temperature: 0.1,
     maxTokens: 2000,
     jsonMode: true,

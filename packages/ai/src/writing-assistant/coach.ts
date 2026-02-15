@@ -1,4 +1,5 @@
 import { getOpenAIClient } from "../shared/openai-client";
+import { MODEL_PRIMARY } from "../shared/model-config";
 import type { CoachRequest, CoachResponse } from "./types";
 
 const MAX_MESSAGES = 15;
@@ -69,7 +70,7 @@ export async function chatWithCoach(req: CoachRequest): Promise<CoachResponse> {
   messages.push({ role: "user", content: req.question });
 
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: MODEL_PRIMARY,
     temperature: 0.6,
     max_tokens: 300,
     messages,

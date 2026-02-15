@@ -1,3 +1,4 @@
+import { MODEL_PRIMARY } from "@writeright/ai/shared/model-config";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     submission_id: params.id,
     essay_type: submission.assignment?.essay_type ?? "continuous",
     rubric_version: "v1.0",
-    model_id: "gpt-4o",
+    model_id: MODEL_PRIMARY,
     prompt_version: "marking-v1",
     dimension_scores: [
       { name: "Content", score: 6, maxScore: 10, band: 3, justification: "Good development of ideas" },

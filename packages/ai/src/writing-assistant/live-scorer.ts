@@ -1,7 +1,8 @@
 import { chatCompletion } from "../shared/openai-client";
+import { MODEL_FAST } from "../shared/model-config";
 import type { LiveScoreRequest, LiveScoreResult } from "./types";
 
-const MODEL_ID = "gpt-4o-mini";
+const MODEL_ID = MODEL_FAST;
 const RUBRIC_VERSION = "sg-olevel-v1";
 
 function buildPrompt(req: LiveScoreRequest): { system: string; user: string } {

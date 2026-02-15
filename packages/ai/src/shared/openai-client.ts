@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { MODEL_PRIMARY } from "./model-config";
 
 let _client: OpenAI | null = null;
 
@@ -19,7 +20,7 @@ export async function chatCompletion(
   options: { model?: string; temperature?: number; maxTokens?: number; jsonMode?: boolean } = {}
 ): Promise<string> {
   const client = getOpenAIClient();
-  const { model = "gpt-4o", temperature = 0.3, maxTokens = 4096, jsonMode = false } = options;
+  const { model = MODEL_PRIMARY, temperature = 0.3, maxTokens = 4096, jsonMode = false } = options;
 
   const response = await client.chat.completions.create({
     model,
@@ -42,7 +43,7 @@ export async function visionCompletion(
   options: { model?: string; maxTokens?: number } = {}
 ): Promise<string> {
   const client = getOpenAIClient();
-  const { model = "gpt-4o", maxTokens = 4096 } = options;
+  const { model = MODEL_PRIMARY, maxTokens = 4096 } = options;
 
   const imageContent = imageUrls.map((url) => ({
     type: "image_url" as const,

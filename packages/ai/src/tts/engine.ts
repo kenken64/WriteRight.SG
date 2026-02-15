@@ -1,4 +1,5 @@
 import { getOpenAIClient } from "../shared/openai-client";
+import { MODEL_TTS } from "../shared/model-config";
 import { AIError, withRetry } from "../shared/errors";
 import { getVoiceForUseCase } from "./voices";
 import type { TTSRequest, TTSResponse, TTSUseCase, TTSVoice, TTSModel } from "./types";
@@ -20,7 +21,7 @@ export async function synthesise(request: TTSRequest): Promise<TTSResponse> {
   const {
     text,
     voice = "nova",
-    model = "tts-1",
+    model = MODEL_TTS,
     speed = 1.0,
     format = "mp3",
   } = request;

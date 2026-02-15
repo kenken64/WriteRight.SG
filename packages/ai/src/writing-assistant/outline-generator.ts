@@ -1,4 +1,5 @@
 import { chatCompletion } from "../shared/openai-client";
+import { MODEL_PRIMARY } from "../shared/model-config";
 import type { OutlineRequest, OutlineResult } from "./types";
 
 const SYSTEM_PROMPT = `You are a writing coach helping Singapore secondary school students plan essays.
@@ -27,7 +28,7 @@ Essay type: ${req.essayType}
 ${req.guidingPoints?.length ? `Guiding points from assignment:\n${req.guidingPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")}` : ""}`;
 
   const raw = await chatCompletion(SYSTEM_PROMPT, userPrompt, {
-    model: "gpt-4o",
+    model: MODEL_PRIMARY,
     temperature: 0.5,
     maxTokens: 1200,
     jsonMode: true,
