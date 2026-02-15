@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { rewriteEssay } from "@writeright/ai/rewrite/engine";
+import type { EvaluationResult } from "@writeright/ai/shared/types";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
@@ -11,26 +13,58 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const { data: submission } = await supabase
     .from("submissions")
-    .select("*, evaluations(*)")
+    .select("*, assignment:assignments(*), evaluations(*)")
     .eq("id", params.id)
     .single();
 
   if (!submission) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (!submission.ocr_text) return NextResponse.json({ error: "No text to rewrite" }, { status: 400 });
 
-  // TODO: Call AI rewrite engine from packages/ai
-  const rewrite = {
-    submission_id: params.id,
-    mode,
-    rewritten_text: `[Rewritten version of submission in ${mode} mode]\n\n${submission.ocr_text}`,
-    diff_payload: { changes: [] },
-    rationale: { overall: "Improved paragraph structure and vocabulary" },
-    target_band: (submission.evaluations?.[0]?.band ?? 3) + 1,
-  };
+  const latestEval = submission.evaluations?.sort((a: any, b: any) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )?.[0];
 
-  const { data, error } = await supabase.from("rewrites").insert(rewrite).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ rewrite: data }, { status: 201 });
+  if (!latestEval) return NextResponse.json({ error: "No evaluation found — evaluate first" }, { status: 400 });
+
+  try {
+    const evalForAI: EvaluationResult = {
+      essayType: latestEval.essay_type,
+      rubricVersion: latestEval.rubric_version,
+      modelId: latestEval.model_id,
+      promptVersion: latestEval.prompt_version,
+      dimensionScores: latestEval.dimension_scores,
+      totalScore: latestEval.total_score,
+      band: latestEval.band,
+      strengths: latestEval.strengths,
+      weaknesses: latestEval.weaknesses,
+      nextSteps: latestEval.next_steps,
+      confidence: latestEval.confidence,
+      reviewRecommended: latestEval.review_recommended,
+    };
+
+    const result = await rewriteEssay({
+      essayText: submission.ocr_text,
+      mode,
+      evaluation: evalForAI,
+      essayType: submission.assignment?.essay_type ?? "continuous",
+      prompt: submission.assignment?.prompt ?? "",
+    });
+
+    const rewrite = {
+      submission_id: params.id,
+      mode: result.mode,
+      rewritten_text: result.rewrittenText,
+      diff_payload: result.diffPayload,
+      rationale: result.rationale,
+      target_band: result.targetBand,
+    };
+
+    const { data, error } = await supabase.from("rewrites").insert(rewrite).select().single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ rewrite: data }, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message ?? "Rewrite failed" }, { status: 500 });
+  }
 }
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {

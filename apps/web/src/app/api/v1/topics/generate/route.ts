@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { generateTopicRequestSchema } from "@/lib/validators/schemas";
+import { generateFromTrending } from "@writeright/ai/topics/from-trending";
+import { generateFromArticle } from "@writeright/ai/topics/from-article";
 
 export async function POST(req: NextRequest) {
   const supabase = createServerSupabaseClient();
@@ -29,18 +31,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Monthly topic generation limit reached" }, { status: 429 });
     }
 
-    // TODO: Call AI topic generation from packages/ai
-    const generatedPrompts = {
-      title: `Generated ${params.essayType} writing prompt`,
-      prompt: params.articleText
-        ? `Based on the article provided, write a ${params.essayType} composition...`
-        : `Write a ${params.essayType} composition on a trending topic...`,
-      guidingPoints: [
-        "Consider the social implications",
-        "Provide concrete examples",
-        "Address potential counterarguments",
-      ],
-    };
+    let generatedPrompts;
+
+    if (params.source === "upload" && params.articleText) {
+      const topics = await generateFromArticle(params.articleText, params.essayType, params.level ?? "sec4");
+      generatedPrompts = topics;
+    } else {
+      const topics = await generateFromTrending(params.essayType, params.level ?? "sec4");
+      generatedPrompts = topics;
+    }
 
     const { data: topic, error } = await supabase.from("topics").insert({
       source: params.source === "upload" ? "upload" : "trending",
@@ -48,6 +47,7 @@ export async function POST(req: NextRequest) {
       essay_type: params.essayType,
       level: params.level ?? null,
       generated_prompts: generatedPrompts,
+      created_by: user.id,
     }).select().single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

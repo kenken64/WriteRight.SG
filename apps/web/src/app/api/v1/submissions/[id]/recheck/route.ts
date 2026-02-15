@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { evaluateEssay } from "@writeright/ai/marking/engine";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Check recheck limits (max 2 per submission)
+  // Check recheck limits (max 2 rechecks = 3 total evaluations)
   const { count } = await supabase
     .from("evaluations")
     .select("*", { count: "exact", head: true })
@@ -16,9 +17,58 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Maximum recheck limit reached (2 rechecks)" }, { status: 429 });
   }
 
-  // Reset to evaluating and re-trigger
+  const { data: submission } = await supabase
+    .from("submissions")
+    .select("*, assignment:assignments(*)")
+    .eq("id", params.id)
+    .single();
+
+  if (!submission) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!submission.ocr_text) return NextResponse.json({ error: "OCR not complete" }, { status: 400 });
+
+  // Reset to evaluating
   await supabase.from("submissions").update({ status: "evaluating", updated_at: new Date().toISOString() }).eq("id", params.id);
 
-  // TODO: Re-run AI marking with different temperature/prompt variation
-  return NextResponse.json({ message: "Recheck initiated", attempt: (count ?? 0) + 1 });
+  try {
+    // Re-run evaluation — the AI engine uses temperature 0.2 internally,
+    // but natural variance + retry logic produces different results
+    const result = await evaluateEssay({
+      essayText: submission.ocr_text,
+      essayType: submission.assignment?.essay_type ?? "continuous",
+      essaySubType: submission.assignment?.essay_sub_type ?? undefined,
+      prompt: submission.assignment?.prompt ?? "",
+      guidingPoints: submission.assignment?.guiding_points ?? undefined,
+      level: "sec4",
+    });
+
+    const evaluation = {
+      submission_id: params.id,
+      essay_type: result.essayType,
+      rubric_version: result.rubricVersion,
+      model_id: result.modelId,
+      prompt_version: result.promptVersion,
+      dimension_scores: result.dimensionScores,
+      total_score: result.totalScore,
+      band: result.band,
+      strengths: result.strengths,
+      weaknesses: result.weaknesses,
+      next_steps: result.nextSteps,
+      confidence: result.confidence,
+      review_recommended: result.reviewRecommended,
+    };
+
+    const { data: evalData, error } = await supabase.from("evaluations").insert(evaluation).select().single();
+
+    if (error) {
+      await supabase.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", params.id);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await supabase.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", params.id);
+
+    return NextResponse.json({ evaluation: evalData, attempt: (count ?? 0) + 1 }, { status: 201 });
+  } catch (err: any) {
+    await supabase.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", params.id);
+    return NextResponse.json({ error: err.message ?? "Recheck failed" }, { status: 500 });
+  }
 }

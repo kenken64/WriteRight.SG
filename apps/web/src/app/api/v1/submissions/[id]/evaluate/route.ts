@@ -1,6 +1,6 @@
-import { MODEL_PRIMARY } from "@writeright/ai/shared/model-config";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { evaluateEssay } from "@writeright/ai/marking/engine";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
@@ -21,31 +21,44 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // Update status to evaluating
   await supabase.from("submissions").update({ status: "evaluating", updated_at: new Date().toISOString() }).eq("id", params.id);
 
-  // TODO: Call AI marking engine from packages/ai
-  const evaluation = {
-    submission_id: params.id,
-    essay_type: submission.assignment?.essay_type ?? "continuous",
-    rubric_version: "v1.0",
-    model_id: MODEL_PRIMARY,
-    prompt_version: "marking-v1",
-    dimension_scores: [
-      { name: "Content", score: 6, maxScore: 10, band: 3, justification: "Good development of ideas" },
-      { name: "Language", score: 7, maxScore: 10, band: 4, justification: "Varied vocabulary with minor errors" },
-      { name: "Organisation", score: 5, maxScore: 10, band: 3, justification: "Logical flow with room for improvement" },
-    ],
-    total_score: 18,
-    band: 3,
-    strengths: [{ text: "Clear thesis statement", quote: "", suggestion: "" }],
-    weaknesses: [{ text: "Limited use of examples", quote: "", suggestion: "Add specific real-world examples" }],
-    next_steps: ["Focus on paragraph transitions", "Expand vocabulary for formal register"],
-    confidence: 0.82,
-    review_recommended: false,
-  };
+  try {
+    const result = await evaluateEssay({
+      essayText: submission.ocr_text,
+      essayType: submission.assignment?.essay_type ?? "continuous",
+      essaySubType: submission.assignment?.essay_sub_type ?? undefined,
+      prompt: submission.assignment?.prompt ?? "",
+      guidingPoints: submission.assignment?.guiding_points ?? undefined,
+      level: "sec4",
+    });
 
-  const { data: evalData, error } = await supabase.from("evaluations").insert(evaluation).select().single();
+    const evaluation = {
+      submission_id: params.id,
+      essay_type: result.essayType,
+      rubric_version: result.rubricVersion,
+      model_id: result.modelId,
+      prompt_version: result.promptVersion,
+      dimension_scores: result.dimensionScores,
+      total_score: result.totalScore,
+      band: result.band,
+      strengths: result.strengths,
+      weaknesses: result.weaknesses,
+      next_steps: result.nextSteps,
+      confidence: result.confidence,
+      review_recommended: result.reviewRecommended,
+    };
 
-  await supabase.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", params.id);
+    const { data: evalData, error } = await supabase.from("evaluations").insert(evaluation).select().single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ evaluation: evalData }, { status: 201 });
+    if (error) {
+      await supabase.from("submissions").update({ status: "failed", failure_reason: error.message, updated_at: new Date().toISOString() }).eq("id", params.id);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await supabase.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", params.id);
+
+    return NextResponse.json({ evaluation: evalData }, { status: 201 });
+  } catch (err: any) {
+    await supabase.from("submissions").update({ status: "failed", failure_reason: err.message, updated_at: new Date().toISOString() }).eq("id", params.id);
+    return NextResponse.json({ error: err.message ?? "Evaluation failed" }, { status: 500 });
+  }
 }
