@@ -47,14 +47,18 @@ export default function NewAssignmentPage() {
       return;
     }
 
-    await createAssignment.mutateAsync({
-      essay_type: result.data.essayType,
-      essay_sub_type: result.data.essaySubType as any,
-      prompt: result.data.prompt,
-      word_count_min: result.data.wordCountMin,
-      word_count_max: result.data.wordCountMax,
-    });
-    router.push('/assignments');
+    try {
+      await createAssignment.mutateAsync({
+        essay_type: result.data.essayType,
+        essay_sub_type: result.data.essaySubType as any,
+        prompt: result.data.prompt,
+        word_count_min: result.data.wordCountMin,
+        word_count_max: result.data.wordCountMax,
+      });
+      router.push('/assignments');
+    } catch (err: any) {
+      setFieldErrors({ prompt: err?.message || 'Failed to create assignment. Please try again.' });
+    }
   };
 
   return (
