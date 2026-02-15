@@ -200,18 +200,55 @@ For significant changes (new features, pricing, UX overhauls, content strategy):
 - Silence after 24h = implicit approval
 - Trivial changes (typos, bug fixes, docs) can proceed immediately
 
-**What counts as "significant":**
-- Anything user-facing (UI, copy, pricing, features)
-- Anything that changes business logic
-- Anything that affects both versions
-- Anything irreversible (database migrations, public API changes)
+### Change Classification — Risk × Reversibility Framework
 
-**What's "trivial" (no waiting needed):**
-- Typo fixes
-- Bug fixes for broken functionality
-- Documentation updates
-- Dependency updates
-- Build/CI fixes
+Every change is evaluated on two dimensions: **blast radius** (how many users/systems affected if it goes wrong) and **reversibility** (how quickly can we undo it with zero data loss).
+
+| | **Easy to reverse** | **Hard to reverse** |
+|---|---|---|
+| **Small blast radius** | Trivial ✅ | Cautious ⚠️ |
+| **Large blast radius** | Significant 🔶 | Critical 🔴 |
+
+#### Trivial ✅ — Small blast radius + Easy to reverse
+
+Examples: typo fixes, CSS adjustments, dependency updates, adding tests, fixing broken links, documentation edits.
+
+*Why safe:* Even if wrong, revert one commit and nobody notices. No data touched, no user flow changed.
+
+*Process:* Any PO can approve → Similancao executes immediately → no waiting period.
+
+#### Cautious ⚠️ — Small blast radius + Hard to reverse
+
+Examples: database schema migrations (even small ones), authentication logic changes, data validation rule changes, API response format changes, Stripe webhook modifications.
+
+*Why this needs care:* The feature looks small but if it breaks, you can't just `git revert` — there's data in the new format, payments processed under new logic, etc.
+
+*Process:* Requires Kenneth's technical review → test in staging first → deploy during low-traffic hours.
+
+#### Significant 🔶 — Large blast radius + Easy to reverse
+
+Examples: pricing changes ($14.90 → $9.90), landing page rewrites, adding/removing major UI features, scoring algorithm output changes, AI model swaps (GPT-4o → GPT-4.1).
+
+*Why this matters:* Lots of users see the change immediately. Easy to revert code-wise — but the risk is **strategic**, not technical. Wrong pricing damages trust. Bad copy kills conversions. A model change affects every essay score.
+
+*Process:* 24-hour announcement in group → all POs can weigh in → silence = approval → execute.
+
+#### Critical 🔴 — Large blast radius + Hard to reverse
+
+Examples: database migrations affecting user data, fundamental rubric/scoring system changes, switching payment provider, merging SG and International codebases, deleting user data or accounts, changing auth provider, public API breaking changes.
+
+*Why dangerous:* Lots of users affected AND you can't easily undo. A rubric change means all historical scores are on a different scale. A payment migration means active subscriptions are in flight. These changes have **compounding consequences**.
+
+*Process:* Requires explicit written approval from ALL POs → technical design doc → staged rollout → rollback plan documented before deployment.
+
+#### Why this framework works
+
+1. **Speed where it's safe** — trivial changes ship instantly, no bureaucracy for typo fixes
+2. **Caution where it's invisible** — catches dangerous changes that *look* small (one-line migrations, auth tweaks)
+3. **Democratic where it matters** — pricing/features/copy get 24h PO review window
+4. **Protective where it's irreversible** — critical changes require ALL POs + rollback plan
+5. **Removes ambiguity from Similancao** — systematic evaluation, not vibes-based judgment calls
+6. **Audit trail scales with risk** — trivial = commit, cautious = Kenneth review, significant = group announcement, critical = written approval + design doc
 
 **Emergency override:** If something is broken in production, any PO can authorise an immediate fix. Inform the team after.
 
