@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { InviteCodeCard } from '@/components/dashboard/invite-code-card';
 import { readCsrfToken } from '@/lib/hooks/use-csrf-token';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface Settings {
   displayName: string;
@@ -152,6 +153,9 @@ export default function SettingsPage() {
           {mutation.isError && <span className="text-sm text-destructive">{mutation.error.message}</span>}
         </div>
 
+        {/* Change Password */}
+        <ChangePasswordSection />
+
         {/* Billing */}
         <section className="rounded-lg border bg-white p-6">
           <h2 className="text-lg font-semibold">Billing</h2>
@@ -162,5 +166,133 @@ export default function SettingsPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+function ChangePasswordSection() {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleChangePassword = async () => {
+    setError(null);
+    setSuccess(false);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('All fields are required.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError('New password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const csrfToken = readCsrfToken();
+      if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
+      const res = await fetch('/api/v1/auth/change-password', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to change password.');
+      } else {
+        setSuccess(true);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setTimeout(() => setSuccess(false), 5000);
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="rounded-lg border bg-white p-6">
+      <h2 className="text-lg font-semibold">Change Password</h2>
+      <div className="mt-4 space-y-4">
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            <span>⚠️</span><span>{error}</span>
+          </div>
+        )}
+        {success && (
+          <div className="flex items-start gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+            <span>✅</span><span>Password changed successfully!</span>
+          </div>
+        )}
+        <div>
+          <label className="block text-sm font-medium">Current Password</label>
+          <div className="relative">
+            <input
+              type={showCurrent ? 'text' : 'password'}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="mt-1 w-full rounded-md border px-3 py-2 pr-10 text-sm"
+              placeholder="••••••••"
+            />
+            <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-400 hover:text-gray-600" tabIndex={-1}>
+              {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium">New Password</label>
+          <div className="relative">
+            <input
+              type={showNew ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="mt-1 w-full rounded-md border px-3 py-2 pr-10 text-sm"
+              placeholder="••••••••"
+            />
+            <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-400 hover:text-gray-600" tabIndex={-1}>
+              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Confirm New Password</label>
+          <div className="relative">
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="mt-1 w-full rounded-md border px-3 py-2 pr-10 text-sm"
+              placeholder="••••••••"
+            />
+            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-400 hover:text-gray-600" tabIndex={-1}>
+              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <button
+          onClick={handleChangePassword}
+          disabled={loading}
+          className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+        >
+          {loading ? 'Updating...' : 'Change Password'}
+        </button>
+      </div>
+    </section>
   );
 }
