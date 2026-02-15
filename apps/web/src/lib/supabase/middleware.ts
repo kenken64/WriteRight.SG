@@ -53,14 +53,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages (but allow reset-password and forgot-password)
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
-    // Don't redirect if coming from a password reset flow
-    const isResetFlow = request.nextUrl.searchParams.get('redirect')?.includes('reset-password');
-    if (!isResetFlow) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/assignments';
-      return NextResponse.redirect(url);
-    }
+  const isResetPath = request.nextUrl.pathname === '/reset-password' || request.nextUrl.pathname === '/forgot-password';
+  if (user && !isResetPath && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/assignments';
+    return NextResponse.redirect(url);
   }
 
   // Onboarding gate: check if authenticated user has completed onboarding
