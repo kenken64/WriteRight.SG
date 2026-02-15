@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ChunkedUploader } from '@/components/upload/chunked-uploader';
 import { ImageQualityCheck } from '@/components/upload/image-quality-check';
+import { readCsrfToken } from '@/lib/hooks/use-csrf-token';
 
 export default function NewSubmissionPage() {
   const searchParams = useSearchParams();
@@ -24,10 +25,14 @@ export default function NewSubmissionPage() {
     setError(null);
 
     try {
+      const csrfToken = readCsrfToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
       // Create the submission record
       const res = await fetch('/api/v1/submissions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ assignmentId, imageRefs }),
       });
 
@@ -41,6 +46,7 @@ export default function NewSubmissionPage() {
       // Trigger OCR + evaluation
       const finalizeRes = await fetch(`/api/v1/submissions/${submission.id}/finalize`, {
         method: 'POST',
+        headers,
       });
 
       if (!finalizeRes.ok) {
