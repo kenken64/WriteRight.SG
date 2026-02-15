@@ -11,6 +11,11 @@ export default function NewAssignmentPage() {
   const [prompt, setPrompt] = useState('');
   const [wordCountMin, setWordCountMin] = useState(250);
   const [wordCountMax, setWordCountMax] = useState(500);
+
+  const handleWordCount = (value: string, setter: (v: number) => void) => {
+    const num = parseInt(value, 10);
+    setter(isNaN(num) ? 0 : Math.max(0, Math.min(num, 5000)));
+  };
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const createAssignment = useCreateAssignment();
@@ -112,7 +117,10 @@ export default function NewAssignmentPage() {
             <input
               type="number"
               value={wordCountMin}
-              onChange={(e) => setWordCountMin(Number(e.target.value))}
+              onChange={(e) => handleWordCount(e.target.value, setWordCountMin)}
+              onBlur={(e) => handleWordCount(e.target.value, setWordCountMin)}
+              min={50}
+              max={5000}
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
             />
             {fieldErrors.wordCountMin && (
@@ -124,7 +132,10 @@ export default function NewAssignmentPage() {
             <input
               type="number"
               value={wordCountMax}
-              onChange={(e) => setWordCountMax(Number(e.target.value))}
+              onChange={(e) => handleWordCount(e.target.value, setWordCountMax)}
+              onBlur={(e) => handleWordCount(e.target.value, setWordCountMax)}
+              min={100}
+              max={5000}
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
             />
             {fieldErrors.wordCountMax && (
