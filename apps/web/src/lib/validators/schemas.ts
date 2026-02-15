@@ -97,13 +97,13 @@ export const assignmentSchema = z.object({
 export type Assignment = z.infer<typeof assignmentSchema>;
 
 export const createAssignmentSchema = assignmentSchema.pick({
-  student_id: true,
   essay_type: true,
   essay_sub_type: true,
   prompt: true,
   word_count_min: true,
   word_count_max: true,
 }).extend({
+  student_id: z.string().uuid().optional(),
   topic_id: z.string().uuid().optional(),
   guiding_points: z.array(z.string()).optional(),
 });
