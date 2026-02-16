@@ -15,7 +15,7 @@ export async function generateFromArticle(
     level,
   });
 
-  const raw = await chatCompletion(system, user, { temperature: 0.7, maxTokens: 2000, jsonMode: true });
+  const raw = await chatCompletion(system, user, { temperature: 0.7, maxTokens: 2000, jsonMode: true, tracking: { operation: "topic_gen" } });
 
   let parsed: any;
   try {

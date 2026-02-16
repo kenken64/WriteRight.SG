@@ -32,6 +32,7 @@ ${req.guidingPoints?.length ? `Guiding points from assignment:\n${req.guidingPoi
     temperature: 0.5,
     maxTokens: 1200,
     jsonMode: true,
+    tracking: { operation: "outline" },
   });
 
   try {

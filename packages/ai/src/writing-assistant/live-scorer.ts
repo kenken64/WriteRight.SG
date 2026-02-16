@@ -67,6 +67,7 @@ export async function scoreLive(req: LiveScoreRequest): Promise<LiveScoreResult>
     temperature: 0.2,
     maxTokens: 1500,
     jsonMode: true,
+    tracking: { operation: "live_score" },
   });
 
   try {

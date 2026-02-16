@@ -34,6 +34,7 @@ ${req.text}
     temperature: 0.2,
     maxTokens: 1500,
     jsonMode: true,
+    tracking: { operation: "analysis" },
   });
 
   try {

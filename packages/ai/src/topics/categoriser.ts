@@ -7,7 +7,7 @@ export async function categoriseTopic(topicText: string): Promise<TopicCategory>
   const result = await chatCompletion(
     "You categorise essay topics. Respond with ONLY one category name.",
     `Categorise this topic into one of: ${CATEGORIES.join(", ")}\n\nTopic: ${topicText}`,
-    { temperature: 0, maxTokens: 20 }
+    { temperature: 0, maxTokens: 20, tracking: { operation: "topic_categorise" } }
   );
 
   const cleaned = result.trim().toLowerCase().replace(/\s+/g, "_") as TopicCategory;

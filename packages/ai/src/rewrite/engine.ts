@@ -28,7 +28,7 @@ export async function rewriteEssay(input: RewriteInput): Promise<RewriteResult> 
   });
 
   const rawResult = await withRetry(
-    () => chatCompletion(system, user, { temperature: 0.4, maxTokens: 4000, jsonMode: true }),
+    () => chatCompletion(system, user, { temperature: 0.4, maxTokens: 4000, jsonMode: true, tracking: { operation: "rewrite" } }),
     2
   );
 

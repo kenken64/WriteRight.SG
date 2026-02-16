@@ -27,7 +27,7 @@ export async function extractTextFromImages(imageUrls: string[]): Promise<OcrRes
         OCR_SYSTEM_PROMPT,
         [imageUrls[i]],
         `Transcribe page ${i + 1} of the handwritten essay. Convert to well-formatted Markdown.`,
-        { maxTokens: 3000 }
+        { maxTokens: 3000, tracking: { operation: "ocr" } }
       );
 
       const confidence = calculateConfidence(text);

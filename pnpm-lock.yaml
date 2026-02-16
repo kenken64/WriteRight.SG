@@ -183,6 +183,9 @@ importers:
 
   packages/ai:
     dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.45.0
+        version: 2.95.3
       diff:
         specifier: ^5.2.0
         version: 5.2.2

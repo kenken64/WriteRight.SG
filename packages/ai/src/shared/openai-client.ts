@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { MODEL_PRIMARY } from "./model-config";
+import { trackUsage } from "./usage-tracker";
 
 let _client: OpenAI | null = null;
 
@@ -19,6 +20,12 @@ function isReasoningModel(model: string): boolean {
   return model.startsWith("gpt-5") || model.startsWith("o1") || model.startsWith("o3");
 }
 
+export interface TrackingOptions {
+  operation: string;
+  submissionId?: string;
+  userId?: string;
+}
+
 export async function chatCompletion(
   systemPrompt: string,
   userPrompt: string,
@@ -28,40 +35,68 @@ export async function chatCompletion(
     maxTokens?: number;
     jsonMode?: boolean;
     reasoningEffort?: "low" | "medium" | "high";
+    tracking?: TrackingOptions;
   } = {}
 ): Promise<string> {
   const client = getOpenAIClient();
-  const { model = MODEL_PRIMARY, temperature = 0.3, maxTokens = 4096, jsonMode = false, reasoningEffort } = options;
+  const { model = MODEL_PRIMARY, temperature = 0.3, maxTokens = 4096, jsonMode = false, reasoningEffort, tracking } = options;
   const reasoning = isReasoningModel(model);
 
-  const response = await client.chat.completions.create({
-    model,
-    // Reasoning models (gpt-5, o1, o3) don't support temperature — omit it
-    ...(reasoning ? {} : { temperature }),
-    // gpt-5 requires max_completion_tokens instead of max_tokens
-    ...(reasoning
-      ? { max_completion_tokens: maxTokens }
-      : { max_tokens: maxTokens }),
-    // Pass reasoning_effort for reasoning models
-    ...(reasoning && reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
-    response_format: jsonMode ? { type: "json_object" } : undefined,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-  } as any);
+  const start = Date.now();
+  let status: "success" | "error" = "success";
+  let errorMsg: string | undefined;
 
-  return response.choices[0]?.message?.content ?? "";
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      // Reasoning models (gpt-5, o1, o3) don't support temperature — omit it
+      ...(reasoning ? {} : { temperature }),
+      // gpt-5 requires max_completion_tokens instead of max_tokens
+      ...(reasoning
+        ? { max_completion_tokens: maxTokens }
+        : { max_tokens: maxTokens }),
+      // Pass reasoning_effort for reasoning models
+      ...(reasoning && reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
+      response_format: jsonMode ? { type: "json_object" } : undefined,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    } as any);
+
+    if (tracking) {
+      trackUsage({
+        ...tracking,
+        model,
+        usage: response.usage as any,
+        durationMs: Date.now() - start,
+        status: "success",
+      });
+    }
+
+    return response.choices[0]?.message?.content ?? "";
+  } catch (err) {
+    if (tracking) {
+      trackUsage({
+        ...tracking,
+        model,
+        durationMs: Date.now() - start,
+        status: "error",
+        error: (err as Error).message,
+      });
+    }
+    throw err;
+  }
 }
 
 export async function visionCompletion(
   systemPrompt: string,
   imageUrls: string[],
   userPrompt: string,
-  options: { model?: string; maxTokens?: number } = {}
+  options: { model?: string; maxTokens?: number; tracking?: TrackingOptions } = {}
 ): Promise<string> {
   const client = getOpenAIClient();
-  const { model = MODEL_PRIMARY, maxTokens = 4096 } = options;
+  const { model = MODEL_PRIMARY, maxTokens = 4096, tracking } = options;
   const reasoning = isReasoningModel(model);
 
   const imageContent = imageUrls.map((url) => ({
@@ -69,19 +104,44 @@ export async function visionCompletion(
     image_url: { url, detail: "high" as const },
   }));
 
-  const response = await client.chat.completions.create({
-    model,
-    ...(reasoning
-      ? { max_completion_tokens: maxTokens }
-      : { max_tokens: maxTokens }),
-    messages: [
-      { role: "system", content: systemPrompt },
-      {
-        role: "user",
-        content: [...imageContent, { type: "text" as const, text: userPrompt }],
-      },
-    ],
-  } as any);
+  const start = Date.now();
 
-  return response.choices[0]?.message?.content ?? "";
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      ...(reasoning
+        ? { max_completion_tokens: maxTokens }
+        : { max_tokens: maxTokens }),
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: [...imageContent, { type: "text" as const, text: userPrompt }],
+        },
+      ],
+    } as any);
+
+    if (tracking) {
+      trackUsage({
+        ...tracking,
+        model,
+        usage: response.usage as any,
+        durationMs: Date.now() - start,
+        status: "success",
+      });
+    }
+
+    return response.choices[0]?.message?.content ?? "";
+  } catch (err) {
+    if (tracking) {
+      trackUsage({
+        ...tracking,
+        model,
+        durationMs: Date.now() - start,
+        status: "error",
+        error: (err as Error).message,
+      });
+    }
+    throw err;
+  }
 }

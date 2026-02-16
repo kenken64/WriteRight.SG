@@ -36,6 +36,7 @@ export async function checkGrammar(req: GrammarCheckRequest): Promise<GrammarChe
     temperature: 0.1,
     maxTokens: 2000,
     jsonMode: true,
+    tracking: { operation: "grammar_check" },
   });
 
   try {

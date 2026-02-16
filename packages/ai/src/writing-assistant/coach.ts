@@ -1,5 +1,6 @@
 import { getOpenAIClient } from "../shared/openai-client";
 import { MODEL_PRIMARY } from "../shared/model-config";
+import { trackUsage } from "../shared/usage-tracker";
 import type { CoachRequest, CoachResponse } from "./types";
 
 const MAX_MESSAGES = 15;
@@ -69,11 +70,20 @@ export async function chatWithCoach(req: CoachRequest): Promise<CoachResponse> {
   // Add current question
   messages.push({ role: "user", content: req.question });
 
+  const start = Date.now();
   const response = await client.chat.completions.create({
     model: MODEL_PRIMARY,
     temperature: 0.6,
     max_tokens: 300,
     messages,
+  });
+
+  trackUsage({
+    operation: "coaching",
+    model: MODEL_PRIMARY,
+    usage: response.usage as any,
+    durationMs: Date.now() - start,
+    status: "success",
   });
 
   return {

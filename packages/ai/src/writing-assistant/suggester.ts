@@ -43,6 +43,7 @@ ${req.currentParagraph}
     temperature: 0.5,
     maxTokens: 500,
     jsonMode: true,
+    tracking: { operation: "suggestion" },
   });
 
   try {

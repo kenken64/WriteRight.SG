@@ -20,7 +20,7 @@ export async function generateFromTrending(
     additionalContext: SG_CONTEXT + (category ? `\nFocus on category: ${category}` : ""),
   });
 
-  const raw = await chatCompletion(system, user, { temperature: 0.8, maxTokens: 2000, jsonMode: true });
+  const raw = await chatCompletion(system, user, { temperature: 0.8, maxTokens: 2000, jsonMode: true, tracking: { operation: "topic_gen" } });
 
   let parsed: any;
   try {
