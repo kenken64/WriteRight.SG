@@ -75,7 +75,10 @@ export function useSubmissions(assignmentId?: string) {
 export function useSubmission(id: string) {
   return useQuery({
     queryKey: ['submission', id],
-    queryFn: () => apiFetch<Submission>(`/submissions/${id}`),
+    queryFn: async () => {
+      const res = await apiFetch<{ submission: Submission }>(`/submissions/${id}`);
+      return res.submission;
+    },
   });
 }
 

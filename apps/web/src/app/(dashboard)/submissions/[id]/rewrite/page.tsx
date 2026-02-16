@@ -81,6 +81,7 @@ export default function RewritePage() {
           <DiffView
             original={originalText}
             rewritten={rewrite.rewritten_text}
+            diffPayload={rewrite.diff_payload as Array<{ type: 'add' | 'remove' | 'unchanged'; value: string }> | undefined}
             rationale={rationale}
           />
         </div>
