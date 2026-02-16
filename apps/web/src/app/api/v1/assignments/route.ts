@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    console.log("[assignments:POST] body:", JSON.stringify(body));
     const parsed = createAssignmentSchema.parse(body);
 
     // Resolve student_profile.id from auth user if not provided
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ assignment: data }, { status: 201 });
   } catch (err: any) {
+    console.error("[assignments:POST] error:", err.message);
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }

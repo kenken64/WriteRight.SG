@@ -40,7 +40,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `API error: ${res.status}`);
+    throw new Error(error.error || error.message || `API error: ${res.status}`);
   }
   return res.json();
 }
