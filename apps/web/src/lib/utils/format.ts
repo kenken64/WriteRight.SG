@@ -60,13 +60,28 @@ export function formatStatus(status: string): { label: string; color: string } {
   const map: Record<string, { label: string; color: string }> = {
     draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700' },
     uploading: { label: 'Uploading...', color: 'bg-blue-100 text-blue-700' },
-    processing: { label: 'Processing', color: 'bg-yellow-100 text-yellow-700' },
-    ocr_complete: { label: 'OCR Complete', color: 'bg-purple-100 text-purple-700' },
+    processing: { label: 'Reading handwriting...', color: 'bg-yellow-100 text-yellow-700' },
+    ocr_complete: { label: 'Ready for marking', color: 'bg-purple-100 text-purple-700' },
     evaluating: { label: 'Marking...', color: 'bg-orange-100 text-orange-700' },
     evaluated: { label: 'Marked', color: 'bg-green-100 text-green-700' },
     failed: { label: 'Failed', color: 'bg-red-100 text-red-700' },
   };
   return map[status] ?? { label: status, color: 'bg-gray-100 text-gray-700' };
+}
+
+/**
+ * Get a user-friendly description for a submission status
+ */
+export function getStatusDescription(status: string): string | null {
+  const descriptions: Record<string, string> = {
+    uploading: 'Your essay is being uploaded. This should only take a moment.',
+    processing: 'We are reading your handwriting and converting it to text. This usually takes less than a minute.',
+    ocr_complete: 'Your handwriting has been read successfully. Marking will begin shortly.',
+    evaluating: 'Your essay is being marked by our AI. This usually takes 1-2 minutes.',
+    evaluated: 'Your essay has been marked! View your feedback and suggested rewrite below.',
+    failed: 'Something went wrong while processing your submission. Please try submitting again or contact support.',
+  };
+  return descriptions[status] ?? null;
 }
 
 /**

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import { formatStatus, formatConfidence } from '@/lib/utils/format';
+import { formatStatus, formatConfidence, getStatusDescription } from '@/lib/utils/format';
 import { OcrSection } from '@/components/submission/ocr-section';
 
 interface Props {
@@ -34,6 +34,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
   }
 
   const status = formatStatus(submission.status);
+  const statusDescription = getStatusDescription(submission.status);
 
   return (
     <div className="mx-auto w-full max-w-3xl">
@@ -45,6 +46,10 @@ export default async function SubmissionDetailPage({ params }: Props) {
         <h1 className="text-2xl font-bold md:text-3xl">Submission</h1>
         <span className={`rounded-full px-3 py-1 text-sm ${status.color}`}>{status.label}</span>
       </div>
+
+      {statusDescription && (
+        <p className="mt-2 text-sm text-muted-foreground">{statusDescription}</p>
+      )}
 
       <div className="mt-6 rounded-lg border bg-white p-6">
         <h2 className="font-medium">{submission.assignment?.prompt}</h2>
@@ -64,6 +69,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
             )}
           </div>
           <OcrSection
+            submissionId={id}
             text={submission.ocr_text}
             imageUrls={imageUrls}
           />
