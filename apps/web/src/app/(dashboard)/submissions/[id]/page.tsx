@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { formatStatus, formatConfidence } from '@/lib/utils/format';
 import { OcrSection } from '@/components/submission/ocr-section';
@@ -18,6 +18,20 @@ export default async function SubmissionDetailPage({ params }: Props) {
     .single();
 
   if (!submission) notFound();
+
+  // Generate signed URLs for original uploaded images
+  let imageUrls: string[] = [];
+  if (submission.ocr_image_urls?.length) {
+    imageUrls = submission.ocr_image_urls;
+  } else if (submission.image_refs?.length) {
+    const admin = createAdminSupabaseClient();
+    for (const ref of submission.image_refs as string[]) {
+      const { data } = await admin.storage
+        .from('submissions')
+        .createSignedUrl(ref, 3600); // 1 hour expiry
+      if (data?.signedUrl) imageUrls.push(data.signedUrl);
+    }
+  }
 
   const status = formatStatus(submission.status);
 
@@ -51,7 +65,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
           </div>
           <OcrSection
             text={submission.ocr_text}
-            imageUrls={submission.ocr_image_urls ?? []}
+            imageUrls={imageUrls}
           />
         </div>
       )}
