@@ -163,6 +163,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
       await admin.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", id);
       console.log(`[finalize:bg] Done — submission ${id} fully evaluated`);
+
+      // Step 3: Check achievements (fire-and-forget)
+      try {
+        const studentId = user.id;
+        await admin.functions.invoke('check-achievements', {
+          body: { studentId },
+        });
+        console.log(`[finalize:bg] Achievement check completed for ${studentId}`);
+      } catch (achErr: any) {
+        console.error(`[finalize:bg] Achievement check failed:`, achErr.message);
+      }
     } catch (err: any) {
       console.error(`[finalize:bg] Error:`, err.message, err.stack);
       await admin.from("submissions").update({ status: "failed", failure_reason: err.message, updated_at: new Date().toISOString() }).eq("id", id);
