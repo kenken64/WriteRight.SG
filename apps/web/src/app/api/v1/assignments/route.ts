@@ -33,9 +33,16 @@ export async function POST(req: NextRequest) {
     // Resolve student_profile.id from auth user if not provided
     let studentId = parsed.student_id;
     if (!studentId) {
+      // Try student profile first (if user is a student)
       const { data: profile } = await admin.from("student_profiles").select("id").eq("user_id", user.id).single();
-      if (!profile) return NextResponse.json({ error: "Student profile not found. Please complete onboarding." }, { status: 400 });
-      studentId = profile.id;
+      if (profile) {
+        studentId = profile.id;
+      } else {
+        // If not a student, check if user is a parent linked to a student
+        const { data: link } = await admin.from("parent_student_links").select("student_id").eq("parent_id", user.id).limit(1).single();
+        if (!link) return NextResponse.json({ error: "No linked student found. Please complete onboarding." }, { status: 400 });
+        studentId = link.student_id;
+      }
     }
 
     const { data, error } = await admin.from("assignments").insert({
