@@ -110,6 +110,7 @@ async function main() {
     email: MOCK_EMAIL,
     display_name: 'Achievement Tester',
     status: 'active',
+    onboarded: true,
   });
   console.log('   Done');
 
@@ -122,6 +123,13 @@ async function main() {
     level: 'sec4',
   });
   console.log(`   Student ID: ${MOCK_STUDENT_ID}`);
+
+  // ── 3b. Create invite code ─────────────────────────────────────
+  const INVITE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let inviteCode = '';
+  for (let i = 0; i < 6; i++) inviteCode += INVITE_CHARS[Math.floor(Math.random() * INVITE_CHARS.length)];
+  await insert('invite_codes', { code: inviteCode, student_id: MOCK_STUDENT_ID, is_active: true });
+  console.log(`   Invite code: ${inviteCode}`);
 
   // ── 4. Create topics across 5 categories ──────────────────────
   const categories = ['environment', 'technology', 'social_issues', 'education', 'health'];
