@@ -38,10 +38,10 @@ export default async function PerformancePage() {
         .select('*')
         .eq('student_id', profile.id)
         .order('evaluated_at', { ascending: true }),
-      // Query weaknesses via submissions → evaluations to avoid nested !inner issue
+      // Query via submissions → evaluations (with !inner to skip submissions without evals)
       supabase
         .from('submissions')
-        .select('evaluations(weaknesses), assignments!inner(student_id)')
+        .select('evaluations!inner(dimension_scores, weaknesses), assignments!inner(student_id)')
         .eq('assignments.student_id', profile.id),
       supabase
         .from('student_streaks')
@@ -56,7 +56,7 @@ export default async function PerformancePage() {
     ]);
 
   const scoreTrendData = scoreTrendResult.data ?? [];
-  const weaknessRows = weaknessResult.data ?? [];
+  const evaluationRows = weaknessResult.data ?? [];
   const streak = streakResult.data;
   const submissions = submissionsResult.data ?? [];
 
@@ -91,12 +91,27 @@ export default async function PerformancePage() {
     band: row.band,
   }));
 
-  // Aggregate dimension_scores from student_score_trend (already has dimension_scores)
+  // evaluationRows: each row has evaluations (array with one eval) containing dimension_scores & weaknesses
+  // Flatten to a single list of evaluations
+  type DimScore = { name: string; score: number; maxScore: number };
+  type Weakness = { text: string; quote: string; suggestion?: string };
+  type EvalData = { dimension_scores: DimScore[]; weaknesses: Weakness[] };
+
+  const allEvals: EvalData[] = [];
+  for (const row of evaluationRows) {
+    const evals = row.evaluations as EvalData | EvalData[];
+    if (Array.isArray(evals)) {
+      allEvals.push(...evals);
+    } else if (evals) {
+      allEvals.push(evals);
+    }
+  }
+
+  // Aggregate dimension_scores across all evaluations for radar chart
   const dimensionMap: Record<string, { total: number; maxScore: number; count: number }> = {};
-  for (const row of scoreTrendData) {
-    const dims = row.dimension_scores as { name: string; score: number; maxScore: number }[];
-    if (!Array.isArray(dims)) continue;
-    for (const dim of dims) {
+  for (const ev of allEvals) {
+    if (!Array.isArray(ev.dimension_scores)) continue;
+    for (const dim of ev.dimension_scores) {
       const entry = (dimensionMap[dim.name] ??= { total: 0, maxScore: 0, count: 0 });
       entry.total += dim.score;
       entry.maxScore = dim.maxScore;
@@ -110,18 +125,12 @@ export default async function PerformancePage() {
   }));
 
   // Extract weakness text and count occurrences for error categories chart
-  // weaknessRows come from submissions → evaluations(weaknesses)
   const weaknessMap: Record<string, number> = {};
-  for (const row of weaknessRows) {
-    const evals = row.evaluations as { weaknesses: { text: string; quote: string; suggestion?: string }[] }[];
-    if (!Array.isArray(evals)) continue;
-    for (const ev of evals) {
-      const weaknesses = ev.weaknesses;
-      if (!Array.isArray(weaknesses)) continue;
-      for (const w of weaknesses) {
-        const category = w.text.length > 60 ? w.text.slice(0, 57) + '...' : w.text;
-        weaknessMap[category] = (weaknessMap[category] ?? 0) + 1;
-      }
+  for (const ev of allEvals) {
+    if (!Array.isArray(ev.weaknesses)) continue;
+    for (const w of ev.weaknesses) {
+      const category = w.text.length > 60 ? w.text.slice(0, 57) + '...' : w.text;
+      weaknessMap[category] = (weaknessMap[category] ?? 0) + 1;
     }
   }
   const errorCategoriesChart = Object.entries(weaknessMap)
