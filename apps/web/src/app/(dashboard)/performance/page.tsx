@@ -29,17 +29,20 @@ export default async function PerformancePage() {
   if (!profile) redirect('/assignments');
 
   // Fetch all data in parallel
-  const [scoreTrendResult, evaluationsResult, streakResult, submissionsResult] =
+  const [scoreTrendResult, weaknessResult, streakResult, submissionsResult] =
     await Promise.all([
+      // student_score_trend view already joins evaluations → submissions → assignments
+      // and includes dimension_scores
       supabase
         .from('student_score_trend')
         .select('*')
         .eq('student_id', profile.id)
         .order('evaluated_at', { ascending: true }),
+      // Query weaknesses via submissions → evaluations to avoid nested !inner issue
       supabase
-        .from('evaluations')
-        .select('dimension_scores, weaknesses, submissions!inner(assignments!inner(student_id))')
-        .eq('submissions.assignments.student_id', profile.id),
+        .from('submissions')
+        .select('evaluations(weaknesses), assignments!inner(student_id)')
+        .eq('assignments.student_id', profile.id),
       supabase
         .from('student_streaks')
         .select('current_streak, longest_streak')
@@ -53,7 +56,7 @@ export default async function PerformancePage() {
     ]);
 
   const scoreTrendData = scoreTrendResult.data ?? [];
-  const evaluations = evaluationsResult.data ?? [];
+  const weaknessRows = weaknessResult.data ?? [];
   const streak = streakResult.data;
   const submissions = submissionsResult.data ?? [];
 
@@ -88,9 +91,9 @@ export default async function PerformancePage() {
     band: row.band,
   }));
 
-  // Aggregate dimension_scores across all evaluations for radar chart
+  // Aggregate dimension_scores from student_score_trend (already has dimension_scores)
   const dimensionMap: Record<string, { total: number; maxScore: number; count: number }> = {};
-  for (const row of evaluations) {
+  for (const row of scoreTrendData) {
     const dims = row.dimension_scores as { name: string; score: number; maxScore: number }[];
     if (!Array.isArray(dims)) continue;
     for (const dim of dims) {
@@ -107,13 +110,18 @@ export default async function PerformancePage() {
   }));
 
   // Extract weakness text and count occurrences for error categories chart
+  // weaknessRows come from submissions → evaluations(weaknesses)
   const weaknessMap: Record<string, number> = {};
-  for (const row of evaluations) {
-    const weaknesses = row.weaknesses as { text: string; quote: string; suggestion?: string }[];
-    if (!Array.isArray(weaknesses)) continue;
-    for (const w of weaknesses) {
-      const category = w.text.length > 40 ? w.text.slice(0, 37) + '...' : w.text;
-      weaknessMap[category] = (weaknessMap[category] ?? 0) + 1;
+  for (const row of weaknessRows) {
+    const evals = row.evaluations as { weaknesses: { text: string; quote: string; suggestion?: string }[] }[];
+    if (!Array.isArray(evals)) continue;
+    for (const ev of evals) {
+      const weaknesses = ev.weaknesses;
+      if (!Array.isArray(weaknesses)) continue;
+      for (const w of weaknesses) {
+        const category = w.text.length > 60 ? w.text.slice(0, 57) + '...' : w.text;
+        weaknessMap[category] = (weaknessMap[category] ?? 0) + 1;
+      }
     }
   }
   const errorCategoriesChart = Object.entries(weaknessMap)
