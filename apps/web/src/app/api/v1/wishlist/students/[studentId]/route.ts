@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireParentOrStudent, isAuthError } from "@/lib/middleware/rbac";
+import { createAdminSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeInput } from "@/lib/middleware/sanitize";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ studentId: string }> }) {
@@ -27,7 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ stud
     const toUnlock = lockedItems.filter((i: any) => unlockedSet.has(i.required_achievement_id));
 
     if (toUnlock.length > 0) {
-      await auth.supabase
+      const admin = createAdminSupabaseClient();
+      await admin
         .from("wishlist_items")
         .update({ status: "claimable" })
         .in("id", toUnlock.map((i: any) => i.id));

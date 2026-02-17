@@ -97,7 +97,7 @@ export default function WishlistPage() {
               <WishlistCard
                 key={item.id}
                 item={item}
-                onClaim={async () => { claimReward.mutate(item.id); }}
+                onClaim={async () => { await claimReward.mutateAsync(item.id); }}
               />
             ))}
           </div>
