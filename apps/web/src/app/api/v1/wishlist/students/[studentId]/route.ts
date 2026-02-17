@@ -7,6 +7,33 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ stud
   const auth = await requireParentOrStudent(req, studentId);
   if (isAuthError(auth)) return auth;
 
+  // Reconcile: unlock any locked items whose achievement is already earned
+  const { data: lockedItems } = await auth.supabase
+    .from("wishlist_items")
+    .select("id, required_achievement_id")
+    .eq("student_id", studentId)
+    .eq("status", "locked")
+    .not("required_achievement_id", "is", null);
+
+  if (lockedItems && lockedItems.length > 0) {
+    const achievementIds = lockedItems.map((i: any) => i.required_achievement_id);
+    const { data: unlocked } = await auth.supabase
+      .from("student_achievements")
+      .select("achievement_id")
+      .eq("student_id", studentId)
+      .in("achievement_id", achievementIds);
+
+    const unlockedSet = new Set((unlocked ?? []).map((u: any) => u.achievement_id));
+    const toUnlock = lockedItems.filter((i: any) => unlockedSet.has(i.required_achievement_id));
+
+    if (toUnlock.length > 0) {
+      await auth.supabase
+        .from("wishlist_items")
+        .update({ status: "claimable" })
+        .in("id", toUnlock.map((i: any) => i.id));
+    }
+  }
+
   const { data, error } = await auth.supabase
     .from("wishlist_items")
     .select("*")
