@@ -1,14 +1,28 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { TrophyCard } from '@/components/rewards/trophy-card';
+import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
+import { createBuildHref } from '@/lib/utils/build-pagination-href';
+import { Pagination } from '@/components/ui/pagination';
 
-export default async function TrophyCasePage() {
+export default async function TrophyCasePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const { page, pageSize } = parsePaginationParams(params);
+  const { from, to } = toSupabaseRange({ page, pageSize });
+
   const supabase = await createServerSupabaseClient();
-  const { data: trophies } = await supabase
+  const { data: trophies, count } = await supabase
     .from('redemptions')
-    .select('*, wishlist_item:wishlist_items(*), achievement:achievements(*)')
+    .select('*, wishlist_item:wishlist_items(*), achievement:achievements(*)', { count: 'exact' })
     .eq('status', 'completed')
     .eq('kid_confirmed', true)
-    .order('fulfilled_at', { ascending: false });
+    .order('fulfilled_at', { ascending: false })
+    .range(from, to);
+
+  const totalPages = computeTotalPages(count ?? 0, pageSize);
 
   return (
     <div>
@@ -43,6 +57,11 @@ export default async function TrophyCasePage() {
           </div>
         )}
       </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={createBuildHref('/trophy-case')}
+      />
     </div>
   );
 }

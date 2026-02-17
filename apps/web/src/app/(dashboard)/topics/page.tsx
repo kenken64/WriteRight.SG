@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useTopics } from '@/lib/api/client';
 import { TopicCard } from '@/components/dashboard/topic-card';
 import { createClient } from '@/lib/supabase/client';
+import { Pagination } from '@/components/ui/pagination';
+import { DEFAULT_PAGE_SIZE, computeTotalPages } from '@/lib/utils/pagination';
+import { createBuildHref } from '@/lib/utils/build-pagination-href';
 
 const categoryFilters = [
   { label: 'All', value: '' },
@@ -17,7 +21,10 @@ const categoryFilters = [
 ];
 
 export default function TopicsPage() {
-  const [category, setCategory] = useState('');
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category') ?? '';
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
+
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,7 +34,13 @@ export default function TopicsPage() {
   }, []);
 
   const filters = category ? { category } : undefined;
-  const { data: topics, isLoading } = useTopics(filters);
+  const { data, isLoading } = useTopics(filters, page, DEFAULT_PAGE_SIZE);
+  const topics = data?.topics;
+  const total = data?.total ?? 0;
+  const totalPages = computeTotalPages(total, DEFAULT_PAGE_SIZE);
+
+  const existingParams: Record<string, string> = {};
+  if (category) existingParams.category = category;
 
   return (
     <div>
@@ -43,19 +56,24 @@ export default function TopicsPage() {
 
       {/* Filters */}
       <div className="mt-6 flex flex-wrap gap-3">
-        {categoryFilters.map((cat) => (
-          <button
-            key={cat.value}
-            onClick={() => setCategory(cat.value)}
-            className={`rounded-full border px-3 py-1 text-sm transition-colors ${
-              category === cat.value
-                ? 'border-primary bg-primary/10 text-primary font-medium'
-                : 'text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
+        {categoryFilters.map((cat) => {
+          const href = cat.value
+            ? `/topics?category=${cat.value}`
+            : '/topics';
+          return (
+            <Link
+              key={cat.value}
+              href={href}
+              className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                category === cat.value
+                  ? 'border-primary bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              {cat.label}
+            </Link>
+          );
+        })}
       </div>
 
       {isLoading && (
@@ -83,6 +101,12 @@ export default function TopicsPage() {
           />
         ))}
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={createBuildHref('/topics', existingParams)}
+      />
     </div>
   );
 }

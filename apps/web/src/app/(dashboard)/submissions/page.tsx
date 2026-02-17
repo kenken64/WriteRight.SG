@@ -1,13 +1,27 @@
 import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { formatStatus, formatRelativeDate } from '@/lib/utils/format';
+import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
+import { createBuildHref } from '@/lib/utils/build-pagination-href';
+import { Pagination } from '@/components/ui/pagination';
 
-export default async function SubmissionsPage() {
+export default async function SubmissionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const { page, pageSize } = parsePaginationParams(params);
+  const { from, to } = toSupabaseRange({ page, pageSize });
+
   const supabase = await createServerSupabaseClient();
-  const { data: submissions } = await supabase
+  const { data: submissions, count } = await supabase
     .from('submissions')
-    .select('*, assignment:assignments(prompt, essay_type)')
-    .order('created_at', { ascending: false });
+    .select('*, assignment:assignments(prompt, essay_type)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  const totalPages = computeTotalPages(count ?? 0, pageSize);
 
   return (
     <div>
@@ -54,6 +68,11 @@ export default async function SubmissionsPage() {
           </div>
         )}
       </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={createBuildHref('/submissions')}
+      />
     </div>
   );
 }

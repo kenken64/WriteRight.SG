@@ -133,11 +133,15 @@ export function useRequestRewrite() {
 }
 
 // ─── Topics ───
-export function useTopics(filters?: { category?: string; essayType?: string; level?: string }) {
-  const params = new URLSearchParams(filters as Record<string, string>).toString();
+export function useTopics(filters?: { category?: string; essayType?: string; level?: string }, page = 1, pageSize = 10) {
+  const params = new URLSearchParams({
+    ...(filters as Record<string, string>),
+    page: String(page),
+    pageSize: String(pageSize),
+  }).toString();
   return useQuery({
-    queryKey: ['topics', filters],
-    queryFn: () => apiFetch<{ topics: Topic[] }>(`/topics?${params}`).then((res) => res.topics),
+    queryKey: ['topics', filters, page, pageSize],
+    queryFn: () => apiFetch<{ topics: Topic[]; total: number }>(`/topics?${params}`),
   });
 }
 

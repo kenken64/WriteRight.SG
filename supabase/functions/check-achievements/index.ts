@@ -26,23 +26,38 @@ interface AchievementContext {
   bandHistory: number[];
   improvementCount: number;
   essayTypesAttempted: Set<string>;
+  categoriesAttempted: Set<string>;
   submissionHour?: number;
+  daysSinceLastSubmission: number | null;
 }
 
+// Codes must match the achievements.code column in the database exactly
 const RULES: AchievementRule[] = [
-  { code: 'FIRST_SUBMIT', check: (c) => c.totalSubmissions >= 1, progress: (c) => ({ current: Math.min(c.totalSubmissions, 1), target: 1 }) },
-  { code: 'FIVE_SUBMITS', check: (c) => c.totalSubmissions >= 5, progress: (c) => ({ current: Math.min(c.totalSubmissions, 5), target: 5 }) },
-  { code: 'TEN_SUBMITS', check: (c) => c.totalSubmissions >= 10, progress: (c) => ({ current: Math.min(c.totalSubmissions, 10), target: 10 }) },
-  { code: 'TWENTY_FIVE_SUBMITS', check: (c) => c.totalSubmissions >= 25, progress: (c) => ({ current: Math.min(c.totalSubmissions, 25), target: 25 }) },
-  { code: 'FIRST_IMPROVE', check: (c) => c.improvementCount >= 1, progress: (c) => ({ current: Math.min(c.improvementCount, 1), target: 1 }) },
-  { code: 'THREE_IMPROVES', check: (c) => c.improvementCount >= 3, progress: (c) => ({ current: Math.min(c.improvementCount, 3), target: 3 }) },
-  { code: 'BAND_4', check: (c) => c.highestBand >= 4, progress: (c) => ({ current: Math.min(c.highestBand, 4), target: 4 }) },
-  { code: 'BAND_5', check: (c) => c.highestBand >= 5, progress: (c) => ({ current: Math.min(c.highestBand, 5), target: 5 }) },
-  { code: 'BOTH_TYPES', check: (c) => c.essayTypesAttempted.size >= 2, progress: (c) => ({ current: Math.min(c.essayTypesAttempted.size, 2), target: 2 }) },
-  { code: 'STREAK_3', check: (c) => c.longestStreak >= 3, progress: (c) => ({ current: Math.min(c.currentStreak, 3), target: 3 }) },
-  { code: 'STREAK_7', check: (c) => c.longestStreak >= 7, progress: (c) => ({ current: Math.min(c.currentStreak, 7), target: 7 }) },
-  { code: 'STREAK_30', check: (c) => c.longestStreak >= 30, progress: (c) => ({ current: Math.min(c.currentStreak, 30), target: 30 }) },
-  { code: 'NIGHT_OWL', check: (c) => (c.submissionHour ?? 0) >= 22, progress: () => ({ current: 0, target: 1 }) },
+  // Practice: submission counts
+  { code: 'first_steps', check: (c) => c.totalSubmissions >= 1, progress: (c) => ({ current: Math.min(c.totalSubmissions, 1), target: 1 }) },
+  { code: 'getting_started', check: (c) => c.totalSubmissions >= 5, progress: (c) => ({ current: Math.min(c.totalSubmissions, 5), target: 5 }) },
+  { code: 'dedicated_writer', check: (c) => c.totalSubmissions >= 20, progress: (c) => ({ current: Math.min(c.totalSubmissions, 20), target: 20 }) },
+  { code: 'writing_machine', check: (c) => c.totalSubmissions >= 50, progress: (c) => ({ current: Math.min(c.totalSubmissions, 50), target: 50 }) },
+  { code: 'century_club', check: (c) => c.totalSubmissions >= 100, progress: (c) => ({ current: Math.min(c.totalSubmissions, 100), target: 100 }) },
+
+  // Improvement
+  { code: 'levelling_up', check: (c) => c.improvementCount >= 1, progress: (c) => ({ current: Math.min(c.improvementCount, 1), target: 1 }) },
+  { code: 'band_breaker', check: (c) => c.improvementCount >= 1, progress: (c) => ({ current: Math.min(c.improvementCount, 1), target: 1 }) },
+
+  // Mastery: band thresholds
+  { code: 'band_3_unlocked', check: (c) => c.highestBand >= 3, progress: (c) => ({ current: Math.min(c.highestBand, 3), target: 3 }) },
+  { code: 'band_4_unlocked', check: (c) => c.highestBand >= 4, progress: (c) => ({ current: Math.min(c.highestBand, 4), target: 4 }) },
+  { code: 'band_5_unlocked', check: (c) => c.highestBand >= 5, progress: (c) => ({ current: Math.min(c.highestBand, 5), target: 5 }) },
+
+  // Streaks
+  { code: 'streak_3', check: (c) => c.longestStreak >= 3, progress: (c) => ({ current: Math.min(c.currentStreak, 3), target: 3 }) },
+  { code: 'streak_7', check: (c) => c.longestStreak >= 7, progress: (c) => ({ current: Math.min(c.currentStreak, 7), target: 7 }) },
+  { code: 'streak_30', check: (c) => c.longestStreak >= 30, progress: (c) => ({ current: Math.min(c.currentStreak, 30), target: 30 }) },
+  { code: 'comeback_kid', check: (c) => (c.daysSinceLastSubmission ?? 0) >= 14, progress: () => ({ current: 0, target: 1 }) },
+
+  // Special
+  { code: 'topic_explorer', check: (c) => c.categoriesAttempted.size >= 5, progress: (c) => ({ current: Math.min(c.categoriesAttempted.size, 5), target: 5 }) },
+  { code: 'all_rounder', check: (c) => c.essayTypesAttempted.size >= 2, progress: (c) => ({ current: Math.min(c.essayTypesAttempted.size, 2), target: 2 }) },
 ];
 
 serve(async (req: Request) => {
@@ -54,24 +69,48 @@ serve(async (req: Request) => {
 
     // Gather student data
     const [submissionsRes, evaluationsRes, streakRes, existingRes] = await Promise.all([
-      supabase.from('submissions').select('id, created_at, assignments(essay_type)').eq('assignments.student_id', studentId).eq('status', 'evaluated'),
-      supabase.from('evaluations').select('band, total_score, submission_id').order('created_at', { ascending: true }),
+      supabase
+        .from('submissions')
+        .select('id, created_at, assignment:assignments!inner(essay_type, student_id, topic:topics(category))')
+        .eq('assignments.student_id', studentId)
+        .eq('status', 'evaluated')
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('evaluations')
+        .select('band, total_score, submission_id, created_at')
+        .order('created_at', { ascending: true }),
       supabase.from('student_streaks').select('*').eq('student_id', studentId).single(),
       supabase.from('student_achievements').select('achievement_id, achievements(code)').eq('student_id', studentId),
     ]);
 
     const submissions = submissionsRes.data ?? [];
-    const evaluations = evaluationsRes.data ?? [];
+    const submissionIds = new Set(submissions.map((s: any) => s.id));
+    // Filter evaluations to only those belonging to this student's submissions
+    const evaluations = (evaluationsRes.data ?? []).filter((e: any) => submissionIds.has(e.submission_id));
     const streak = streakRes.data;
     const existingCodes = new Set((existingRes.data ?? []).map((sa: any) => sa.achievements?.code).filter(Boolean));
 
     const bands = evaluations.map((e: any) => e.band as number);
-    const essayTypes = new Set(submissions.map((s: any) => s.assignments?.essay_type).filter(Boolean));
+    const essayTypes = new Set(submissions.map((s: any) => (s.assignment as any)?.essay_type).filter(Boolean));
+    const categories = new Set(
+      submissions.map((s: any) => (s.assignment as any)?.topic?.category).filter(Boolean),
+    );
 
-    // Count improvements
+    // Count band improvements (consecutive evaluations where band increased)
     let improvementCount = 0;
     for (let i = 1; i < bands.length; i++) {
       if (bands[i] > bands[i - 1]) improvementCount++;
+    }
+
+    // Calculate gap since previous submission (for comeback_kid)
+    let daysSinceLastSubmission: number | null = null;
+    if (submissions.length >= 2) {
+      const sorted = submissions
+        .map((s: any) => new Date(s.created_at).getTime())
+        .sort((a: number, b: number) => a - b);
+      // Check the gap before the most recent submission
+      const lastGap = sorted[sorted.length - 1] - sorted[sorted.length - 2];
+      daysSinceLastSubmission = Math.floor(lastGap / (1000 * 60 * 60 * 24));
     }
 
     const lastSubmission = submissions.length > 0 ? new Date(submissions[submissions.length - 1].created_at) : null;
@@ -86,7 +125,9 @@ serve(async (req: Request) => {
       bandHistory: bands,
       improvementCount,
       essayTypesAttempted: essayTypes,
+      categoriesAttempted: categories,
       submissionHour: lastSubmission?.getHours(),
+      daysSinceLastSubmission,
     };
 
     // Check rules and unlock new achievements

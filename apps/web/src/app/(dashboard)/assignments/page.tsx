@@ -1,12 +1,26 @@
 import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
+import { createBuildHref } from '@/lib/utils/build-pagination-href';
+import { Pagination } from '@/components/ui/pagination';
 
-export default async function AssignmentsPage() {
+export default async function AssignmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const { page, pageSize } = parsePaginationParams(params);
+  const { from, to } = toSupabaseRange({ page, pageSize });
+
   const supabase = await createServerSupabaseClient();
-  const { data: assignments } = await supabase
+  const { data: assignments, count } = await supabase
     .from('assignments')
-    .select('*, topic:topics(*)')
-    .order('created_at', { ascending: false });
+    .select('*, topic:topics(*)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  const totalPages = computeTotalPages(count ?? 0, pageSize);
 
   return (
     <div>
@@ -57,6 +71,11 @@ export default async function AssignmentsPage() {
           </div>
         )}
       </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={createBuildHref('/assignments')}
+      />
     </div>
   );
 }

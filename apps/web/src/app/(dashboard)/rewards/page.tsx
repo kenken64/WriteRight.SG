@@ -1,18 +1,32 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { PromiseTracker } from '@/components/rewards/promise-tracker';
 import Link from 'next/link';
+import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
+import { createBuildHref } from '@/lib/utils/build-pagination-href';
+import { Pagination } from '@/components/ui/pagination';
 
-export default async function RewardsPage() {
+export default async function RewardsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const { page, pageSize } = parsePaginationParams(params);
+  const { from, to } = toSupabaseRange({ page, pageSize });
+
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: redemptions } = await supabase
+  const { data: redemptions, count } = await supabase
     .from('redemptions')
-    .select('*, wishlist_item:wishlist_items(*), achievement:achievements(*)')
+    .select('*, wishlist_item:wishlist_items(*), achievement:achievements(*)', { count: 'exact' })
     .eq('parent_id', user?.id ?? '')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  const totalPages = computeTotalPages(count ?? 0, pageSize);
 
   const { data: promiseStats } = await supabase
     .from('parent_promise_stats')
@@ -59,6 +73,12 @@ export default async function RewardsPage() {
             <PromiseTracker key={r.id} redemption={r} viewAs="parent" />
           ))}
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        buildHref={createBuildHref('/rewards')}
+      />
     </div>
   );
 }

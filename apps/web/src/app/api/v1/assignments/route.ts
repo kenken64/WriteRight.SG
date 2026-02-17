@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createAdminSupabaseClient } from "@/lib/supabase/server";
 import { createAssignmentSchema } from "@/lib/validators/schemas";
+import { parsePaginationParams, toSupabaseRange } from "@/lib/utils/pagination";
 
 export async function GET(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -10,13 +11,16 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const studentId = searchParams.get("studentId");
+  const { page, pageSize } = parsePaginationParams(searchParams);
+  const { from, to } = toSupabaseRange({ page, pageSize });
 
-  let query = admin.from("assignments").select("*, topic:topics(*)").order("created_at", { ascending: false });
+  let query = admin.from("assignments").select("*, topic:topics(*)", { count: "exact" }).order("created_at", { ascending: false });
   if (studentId) query = query.eq("student_id", studentId);
+  query = query.range(from, to);
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ assignments: data });
+  return NextResponse.json({ assignments: data, total: count ?? 0 });
 }
 
 export async function POST(req: NextRequest) {
