@@ -9,21 +9,15 @@ export async function ensureUserRow(
   supabase: SupabaseClient,
   user: User,
 ): Promise<{ error: string | null }> {
-  const { data: existing } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', user.id)
-    .single();
-
-  if (existing) return { error: null };
-
-  const { error } = await supabase.from('users').insert({
-    id: user.id,
-    role: user.user_metadata?.role ?? 'student',
-    email: user.email,
-    display_name: user.user_metadata?.display_name ?? null,
-    onboarded: false,
-  });
+  const { error } = await supabase.from('users').upsert(
+    {
+      id: user.id,
+      role: user.user_metadata?.role ?? 'student',
+      email: user.email,
+      display_name: user.user_metadata?.display_name ?? null,
+    },
+    { onConflict: 'id', ignoreDuplicates: true },
+  );
 
   if (error) return { error: error.message };
   return { error: null };
