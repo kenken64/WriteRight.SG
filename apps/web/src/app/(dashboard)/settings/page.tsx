@@ -184,7 +184,9 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground">{child.email}</p>
                   </div>
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    {child.level === 'sec3' ? 'Sec 3'
+                    {child.level === 'sec1' ? 'Sec 1'
+                      : child.level === 'sec2' ? 'Sec 2'
+                      : child.level === 'sec3' ? 'Sec 3'
                       : child.level === 'sec4' ? 'Sec 4'
                       : child.level === 'sec5' ? 'Sec 5'
                       : child.level}

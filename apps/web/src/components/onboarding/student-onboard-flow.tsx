@@ -6,9 +6,11 @@ import { useStudentOnboard } from '@/lib/api/client';
 import { BookOpen, GraduationCap, PenTool, Check, Copy, ArrowRight } from 'lucide-react';
 
 type Step = 'welcome' | 'level' | 'success';
-type Level = 'sec3' | 'sec4' | 'sec5';
+type Level = 'sec1' | 'sec2' | 'sec3' | 'sec4' | 'sec5';
 
 const levels: { value: Level; label: string; description: string; icon: React.ElementType }[] = [
+  { value: 'sec1', label: 'Secondary 1', description: 'Getting started with essay writing', icon: BookOpen },
+  { value: 'sec2', label: 'Secondary 2', description: 'Developing essay writing skills', icon: BookOpen },
   { value: 'sec3', label: 'Secondary 3', description: 'Building strong essay foundations', icon: BookOpen },
   { value: 'sec4', label: 'Secondary 4', description: 'Preparing for English exams', icon: PenTool },
   { value: 'sec5', label: 'Secondary 5', description: 'Advanced exam preparation', icon: GraduationCap },

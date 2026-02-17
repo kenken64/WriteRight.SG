@@ -11,6 +11,8 @@ const PARENT_TYPE_LABELS: Record<string, string> = {
 };
 
 const LEVEL_LABELS: Record<string, string> = {
+  sec1: 'Sec 1',
+  sec2: 'Sec 2',
   sec3: 'Sec 3',
   sec4: 'Sec 4',
   sec5: 'Sec 5',
