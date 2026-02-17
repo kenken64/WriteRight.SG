@@ -58,6 +58,10 @@ async function main() {
   const MOCK_USER_ID = uid();
   const MOCK_STUDENT_ID = uid();
 
+  const PARENT_EMAIL = 'parent-tester@writeright.test';
+  const PARENT_PASSWORD = 'WriteRight2026!';
+  const PARENT_USER_ID = uid();
+
   console.log('╔══════════════════════════════════════════════════╗');
   console.log('║  Creating Mock Student — All Achievements       ║');
   console.log('╚══════════════════════════════════════════════════╝\n');
@@ -81,6 +85,18 @@ async function main() {
   if (existing) {
     await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${existing.id}`, { method: 'DELETE', headers: HEADERS });
     console.log(`   Deleted old auth user ${existing.id}`);
+  }
+  // Clean up old parent mock data
+  const oldParents = await rpc('users', null, { method: 'GET', query: `?email=eq.${encodeURIComponent(PARENT_EMAIL)}&select=id` }).catch(() => []);
+  const oldParentId = oldParents?.[0]?.id;
+  if (oldParentId) {
+    await rpc('users', null, { method: 'DELETE', query: `?id=eq.${oldParentId}` }).catch((e) => console.log(`   (parent cleanup: ${e.message})`));
+    console.log(`   Deleted old parent public.users record ${oldParentId}`);
+  }
+  const existingParent = listData.users?.find((u) => u.email === PARENT_EMAIL);
+  if (existingParent) {
+    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${existingParent.id}`, { method: 'DELETE', headers: HEADERS });
+    console.log(`   Deleted old parent auth user ${existingParent.id}`);
   }
   console.log('   Cleanup done');
 
@@ -130,6 +146,38 @@ async function main() {
   for (let i = 0; i < 6; i++) inviteCode += INVITE_CHARS[Math.floor(Math.random() * INVITE_CHARS.length)];
   await insert('invite_codes', { code: inviteCode, student_id: MOCK_STUDENT_ID, is_active: true });
   console.log(`   Invite code: ${inviteCode}`);
+
+  // ── 3c. Create parent account and link to student ────────────
+  console.log('3c. Creating parent account...');
+  const parentAuthRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: HEADERS,
+    body: JSON.stringify({
+      id: PARENT_USER_ID,
+      email: PARENT_EMAIL,
+      password: PARENT_PASSWORD,
+      email_confirm: true,
+      user_metadata: { role: 'parent', display_name: 'Mock Parent' },
+    }),
+  });
+  if (!parentAuthRes.ok) {
+    throw new Error(`Parent auth create failed: ${parentAuthRes.status} ${await parentAuthRes.text()}`);
+  }
+  await insert('users', {
+    id: PARENT_USER_ID,
+    role: 'parent',
+    email: PARENT_EMAIL,
+    display_name: 'Mock Parent',
+    status: 'active',
+    onboarded: true,
+    parent_type: 'parent',
+  });
+  await insert('parent_student_links', {
+    parent_id: PARENT_USER_ID,
+    student_id: MOCK_STUDENT_ID,
+  });
+  console.log(`   Parent ID: ${PARENT_USER_ID}`);
+  console.log(`   Linked parent → student`);
 
   // ── 4. Create topics across 5 categories ──────────────────────
   const categories = ['environment', 'technology', 'social_issues', 'education', 'health'];
@@ -282,20 +330,73 @@ async function main() {
     }
   }
 
-  // ── 10. Print summary ─────────────────────────────────────────
-  console.log('\n╔══════════════════════════════════════════════════╗');
-  console.log('║  MOCK STUDENT CREATED SUCCESSFULLY              ║');
-  console.log('╠══════════════════════════════════════════════════╣');
-  console.log(`║  Achievements unlocked: ${String(unlocked).padEnd(2)} / ${RULES.length}                 ║`);
-  console.log(`║  Submissions:           102                     ║`);
-  console.log(`║  Evaluations:           102                     ║`);
-  console.log(`║  Streak:                35 days                 ║`);
-  console.log('╠══════════════════════════════════════════════════╣');
-  console.log('║                                                  ║');
-  console.log(`║  Email:    ${MOCK_EMAIL}    ║`);
-  console.log(`║  Password: ${MOCK_PASSWORD}               ║`);
-  console.log('║                                                  ║');
-  console.log('╚══════════════════════════════════════════════════╝');
+  // ── 10. Create wishlist items, redemptions & trophies ────────
+  console.log('\n10. Creating wishlist items & completed redemptions (Trophy Case)...');
+  const trophyData = [
+    { code: 'band_5_unlocked', title: 'Ice cream outing',       rewardType: 'treat',       fulfilledDaysAgo: 2 },
+    { code: 'century_club',    title: 'Extra gaming weekend',    rewardType: 'screen_time', fulfilledDaysAgo: 5 },
+    { code: 'streak_30',       title: 'New book of my choice',   rewardType: 'book',        fulfilledDaysAgo: 8 },
+    { code: 'all_rounder',     title: 'Swimming at Wild Wild Wet', rewardType: 'activity',  fulfilledDaysAgo: 12 },
+    { code: 'band_breaker',    title: 'Art supplies set',        rewardType: 'creative',    fulfilledDaysAgo: 20 },
+  ];
+
+  for (const t of trophyData) {
+    const ach = byCode.get(t.code);
+    if (!ach) { console.log(`   ⚠️  Achievement ${t.code} not found, skipping`); continue; }
+
+    const itemId = uid();
+    const redemptionId = uid();
+    const fulfilledAt = daysAgo(t.fulfilledDaysAgo);
+    const claimedAt = daysAgo(t.fulfilledDaysAgo + 2);
+
+    await insert('wishlist_items', {
+      id: itemId,
+      student_id: MOCK_STUDENT_ID,
+      created_by: 'parent',
+      title: t.title,
+      reward_type: t.rewardType,
+      required_achievement_id: ach.id,
+      status: 'fulfilled',
+      claimed_at: claimedAt,
+      fulfilled_at: fulfilledAt,
+    });
+
+    await insert('redemptions', {
+      id: redemptionId,
+      wishlist_item_id: itemId,
+      student_id: MOCK_STUDENT_ID,
+      parent_id: PARENT_USER_ID,
+      achievement_id: ach.id,
+      status: 'completed',
+      fulfilment_deadline: daysAgo(t.fulfilledDaysAgo - 5),
+      kid_confirmed: true,
+      kid_confirmed_at: fulfilledAt,
+      claimed_at: claimedAt,
+      acknowledged_at: claimedAt,
+      fulfilled_at: fulfilledAt,
+    });
+
+    console.log(`   🏆 ${t.title} (${t.code})`);
+  }
+
+  // ── 11. Print summary ─────────────────────────────────────────
+  console.log('\n╔══════════════════════════════════════════════════════╗');
+  console.log('║  MOCK DATA CREATED SUCCESSFULLY                     ║');
+  console.log('╠══════════════════════════════════════════════════════╣');
+  console.log(`║  Achievements unlocked: ${String(unlocked).padEnd(2)} / ${RULES.length}                    ║`);
+  console.log(`║  Submissions:           102                        ║`);
+  console.log(`║  Evaluations:           102                        ║`);
+  console.log(`║  Streak:                35 days                    ║`);
+  console.log(`║  Trophies:              ${trophyData.length}                          ║`);
+  console.log('╠══════════════════════════════════════════════════════╣');
+  console.log('║  STUDENT LOGIN                                      ║');
+  console.log(`║  Email:    ${MOCK_EMAIL}       ║`);
+  console.log(`║  Password: ${MOCK_PASSWORD}                  ║`);
+  console.log('╠══════════════════════════════════════════════════════╣');
+  console.log('║  PARENT LOGIN                                       ║');
+  console.log(`║  Email:    ${PARENT_EMAIL}        ║`);
+  console.log(`║  Password: ${PARENT_PASSWORD}                  ║`);
+  console.log('╚══════════════════════════════════════════════════════╝');
 }
 
 main().catch((err) => { console.error('\nFATAL:', err.message); process.exit(1); });
