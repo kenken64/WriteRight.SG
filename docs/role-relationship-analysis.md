@@ -270,6 +270,51 @@ For SG O-Level students (Sec 3-4, age 15-16): **Trust-based** recommended — gu
 
 ---
 
+## BUG: Student Cannot See Their Own Guardians/Teachers (2025-07-26)
+
+**Priority: Must-fix before launch**
+
+Currently relationships are one-directional — guardians see their kids, teachers see their students — but students have NO visibility of who is connected to their account.
+
+### What Students Must See (My People)
+
+```
+Student Dashboard → "My People"
+
+FROM GuardianStudent WHERE student_id = me
+  → guardian name, relationship (Parent/Uncle/Guardian), is_primary badge
+
+FROM TeacherStudent WHERE student_id = me AND active = true
+  → teacher name, teacher_type (School/Tuition), class_group
+```
+
+### Student View Mockup
+
+```
+┌─────────────────────────────────┐
+│ 👨‍👧 My Guardians                 │
+│ ├── Mum (Parent) ⭐ Primary     │
+│ └── Uncle Ahmad (Guardian)      │
+│                                 │
+│ 👩‍🏫 My Teachers                  │
+│ ├── Mr Lee — School (Class 3A) │
+│ └── Ms Wong — Tuition          │
+└─────────────────────────────────┘
+```
+
+### What Students Must NOT See
+- Guardian's billing/payment info ❌
+- Other siblings' essays ❌ (unless explicitly shared)
+- Teacher's class roster (other students) ❌
+- Guardian's email/phone ❌ (for younger students; debatable for 16+)
+
+### Why This Is a Bug, Not a Feature
+- Students should know who has access to their work — basic transparency
+- Without this, students can't verify if the right adults are linked
+- If a wrong guardian/teacher is linked, student has no way to flag it
+
+---
+
 ## Overall Recommendations
 
 1. **Use "Guardian" not "Parent"** — covers all caretaker scenarios
