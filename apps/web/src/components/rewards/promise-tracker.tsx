@@ -1,5 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+import { useAcknowledgeRedemption, useFulfilRedemption } from '@/lib/api/client';
+import { useRouter } from 'next/navigation';
+
 export type RedemptionStatus =
   | 'claimed'
   | 'acknowledged'
@@ -45,12 +49,39 @@ function getDaysRemaining(deadline: string): number {
 }
 
 export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
+  const router = useRouter();
+  const acknowledgeMutation = useAcknowledgeRedemption();
+  const fulfilMutation = useFulfilRedemption();
+  const [processing, setProcessing] = useState(false);
   const currentStep = getStepIndex(redemption.status);
   const isOverdue = redemption.status === 'overdue';
   const isWithdrawn = redemption.status === 'withdrawn';
   const isCompleted = redemption.status === 'completed';
   const daysLeft = getDaysRemaining(redemption.fulfilment_deadline);
   const title = redemption.wishlist_item?.title ?? 'Reward';
+
+  const canAcknowledge = viewAs === 'parent' && redemption.status === 'claimed';
+  const canFulfil = viewAs === 'parent' && ['acknowledged', 'pending_fulfilment'].includes(redemption.status);
+
+  async function handleAcknowledge() {
+    setProcessing(true);
+    try {
+      await acknowledgeMutation.mutateAsync(redemption.id);
+      router.refresh();
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  async function handleFulfil() {
+    setProcessing(true);
+    try {
+      await fulfilMutation.mutateAsync({ id: redemption.id });
+      router.refresh();
+    } finally {
+      setProcessing(false);
+    }
+  }
 
   return (
     <div className={`rounded-xl border p-5 ${isOverdue ? 'border-red-300 bg-red-50' : isCompleted ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'}`}>
@@ -126,6 +157,30 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
           </p>
         )}
       </div>
+
+      {/* Action buttons for parent */}
+      {(canAcknowledge || canFulfil) && (
+        <div className="mt-4 flex gap-2">
+          {canAcknowledge && (
+            <button
+              onClick={handleAcknowledge}
+              disabled={processing}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {processing ? 'Acknowledging...' : 'Acknowledge'}
+            </button>
+          )}
+          {canFulfil && (
+            <button
+              onClick={handleFulfil}
+              disabled={processing}
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+            >
+              {processing ? 'Fulfilling...' : 'Mark as Fulfilled'}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

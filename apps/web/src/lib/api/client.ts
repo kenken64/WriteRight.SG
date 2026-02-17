@@ -262,6 +262,15 @@ export function useRedemptions(parentId: string) {
   });
 }
 
+export function useAcknowledgeRedemption() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/redemptions/${id}/acknowledge`, { method: 'POST' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['redemptions'] }),
+  });
+}
+
 export function useFulfilRedemption() {
   const qc = useQueryClient();
   return useMutation({
