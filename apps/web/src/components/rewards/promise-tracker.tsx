@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAcknowledgeRedemption, useFulfilRedemption } from '@/lib/api/client';
+import { useAcknowledgeRedemption, useFulfilRedemption, useWithdrawRedemption } from '@/lib/api/client';
 import { useRouter } from 'next/navigation';
 
 export type RedemptionStatus =
@@ -52,6 +52,7 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
   const router = useRouter();
   const acknowledgeMutation = useAcknowledgeRedemption();
   const fulfilMutation = useFulfilRedemption();
+  const withdrawMutation = useWithdrawRedemption();
   const [processing, setProcessing] = useState(false);
   const currentStep = getStepIndex(redemption.status);
   const isOverdue = redemption.status === 'overdue';
@@ -62,6 +63,7 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
 
   const canAcknowledge = viewAs === 'parent' && redemption.status === 'claimed';
   const canFulfil = viewAs === 'parent' && ['acknowledged', 'pending_fulfilment'].includes(redemption.status);
+  const canWithdraw = viewAs === 'parent' && !isCompleted && !isWithdrawn;
 
   async function handleAcknowledge() {
     setProcessing(true);
@@ -77,6 +79,16 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
     setProcessing(true);
     try {
       await fulfilMutation.mutateAsync({ id: redemption.id });
+      router.refresh();
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  async function handleWithdraw() {
+    setProcessing(true);
+    try {
+      await withdrawMutation.mutateAsync(redemption.id);
       router.refresh();
     } finally {
       setProcessing(false);
@@ -159,7 +171,7 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
       </div>
 
       {/* Action buttons for parent */}
-      {(canAcknowledge || canFulfil) && (
+      {(canAcknowledge || canFulfil || canWithdraw) && (
         <div className="mt-4 flex gap-2">
           {canAcknowledge && (
             <button
@@ -177,6 +189,15 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
               className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
             >
               {processing ? 'Fulfilling...' : 'Mark as Fulfilled'}
+            </button>
+          )}
+          {canWithdraw && (
+            <button
+              onClick={handleWithdraw}
+              disabled={processing}
+              className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+            >
+              {processing ? 'Withdrawing...' : 'Withdraw'}
             </button>
           )}
         </div>

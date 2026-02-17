@@ -271,6 +271,15 @@ export function useAcknowledgeRedemption() {
   });
 }
 
+export function useWithdrawRedemption() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/redemptions/${id}/withdraw`, { method: 'POST' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['redemptions'] }),
+  });
+}
+
 export function useFulfilRedemption() {
   const qc = useQueryClient();
   return useMutation({
