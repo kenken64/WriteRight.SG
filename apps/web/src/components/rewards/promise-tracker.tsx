@@ -139,12 +139,12 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
 
       {/* Status details */}
       <div className="space-y-1 text-sm">
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground" suppressHydrationWarning>
           Claimed on {new Date(redemption.claimed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })}
         </p>
 
         {!isCompleted && !isWithdrawn && (
-          <p className={daysLeft < 0 ? 'text-red-600 font-semibold' : daysLeft <= 2 ? 'text-amber-600 font-medium' : 'text-muted-foreground'}>
+          <p suppressHydrationWarning className={daysLeft < 0 ? 'text-red-600 font-semibold' : daysLeft <= 2 ? 'text-amber-600 font-medium' : 'text-muted-foreground'}>
             {daysLeft < 0
               ? `⚠️ Overdue by ${Math.abs(daysLeft)} day${Math.abs(daysLeft) !== 1 ? 's' : ''}`
               : daysLeft === 0
@@ -154,7 +154,7 @@ export function PromiseTracker({ redemption, viewAs }: PromiseTrackerProps) {
         )}
 
         {isCompleted && redemption.fulfilled_at && (
-          <p className="text-green-600 font-medium">
+          <p className="text-green-600 font-medium" suppressHydrationWarning>
             ✅ Fulfilled on {new Date(redemption.fulfilled_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })}
           </p>
         )}

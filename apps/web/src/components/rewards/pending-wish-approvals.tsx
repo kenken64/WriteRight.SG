@@ -99,7 +99,7 @@ export function PendingWishApprovals({ items, achievements }: PendingWishApprova
                     </span>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-muted-foreground mt-1" suppressHydrationWarning>
                     {item.student_name} &middot;{' '}
                     {new Date(item.created_at).toLocaleDateString('en-SG', {
                       day: 'numeric',
