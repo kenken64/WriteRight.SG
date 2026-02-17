@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'This invite code has already been claimed' }, { status: 409 });
     }
 
-    // Create parent-student link
+    // Create parent-student link (ignore if already linked)
     const { error: linkError } = await supabase
       .from('parent_student_links')
       .insert({
@@ -57,11 +57,12 @@ export async function POST(req: NextRequest) {
       });
 
     if (linkError) {
-      console.error('[onboard/parent] Link error:', linkError.message);
-      if (linkError.message.includes('duplicate') || linkError.message.includes('unique')) {
-        return NextResponse.json({ error: 'You are already linked to this student' }, { status: 409 });
+      const isDuplicate = linkError.message.includes('duplicate') || linkError.message.includes('unique');
+      if (!isDuplicate) {
+        console.error('[onboard/parent] Link error:', linkError.message);
+        return NextResponse.json({ error: linkError.message }, { status: 500 });
       }
-      return NextResponse.json({ error: linkError.message }, { status: 500 });
+      // Already linked — continue to complete onboarding
     }
 
     // Mark code as claimed
