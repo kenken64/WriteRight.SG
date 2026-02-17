@@ -1,7 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { TrophyCard } from '@/components/rewards/trophy-card';
 import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
-import { createBuildHref } from '@/lib/utils/build-pagination-href';
 import { Pagination } from '@/components/ui/pagination';
 
 export default async function TrophyCasePage({
@@ -60,7 +59,7 @@ export default async function TrophyCasePage({
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        buildHref={createBuildHref('/trophy-case')}
+        basePath="/trophy-case"
       />
     </div>
   );

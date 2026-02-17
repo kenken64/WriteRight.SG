@@ -2,7 +2,6 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { PromiseTracker } from '@/components/rewards/promise-tracker';
 import Link from 'next/link';
 import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
-import { createBuildHref } from '@/lib/utils/build-pagination-href';
 import { Pagination } from '@/components/ui/pagination';
 
 export default async function RewardsPage({
@@ -77,7 +76,7 @@ export default async function RewardsPage({
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        buildHref={createBuildHref('/rewards')}
+        basePath="/rewards"
       />
     </div>
   );

@@ -7,8 +7,20 @@ import { cn } from '@/lib/utils/cn';
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  buildHref: (page: number) => string;
+  basePath: string;
+  existingParams?: Record<string, string>;
   className?: string;
+}
+
+function buildHref(basePath: string, existingParams: Record<string, string> | undefined, page: number): string {
+  const params = new URLSearchParams(existingParams);
+  if (page <= 1) {
+    params.delete('page');
+  } else {
+    params.set('page', String(page));
+  }
+  const qs = params.toString();
+  return qs ? `${basePath}?${qs}` : basePath;
 }
 
 function getPageNumbers(current: number, total: number): (number | 'ellipsis')[] {
@@ -38,10 +50,11 @@ function getPageNumbers(current: number, total: number): (number | 'ellipsis')[]
   return pages;
 }
 
-export function Pagination({ currentPage, totalPages, buildHref, className }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, basePath, existingParams, className }: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const pages = getPageNumbers(currentPage, totalPages);
+  const href = (page: number) => buildHref(basePath, existingParams, page);
 
   const baseBtn =
     'inline-flex items-center justify-center rounded-md text-sm font-medium h-9 min-w-[36px] px-2 transition-colors';
@@ -50,7 +63,7 @@ export function Pagination({ currentPage, totalPages, buildHref, className }: Pa
     <nav aria-label="Pagination" className={cn('mt-8 flex items-center justify-center gap-1', className)}>
       {currentPage > 1 ? (
         <Link
-          href={buildHref(currentPage - 1)}
+          href={href(currentPage - 1)}
           className={cn(baseBtn, 'text-muted-foreground hover:bg-muted')}
           aria-label="Previous page"
         >
@@ -70,7 +83,7 @@ export function Pagination({ currentPage, totalPages, buildHref, className }: Pa
         ) : (
           <Link
             key={p}
-            href={buildHref(p)}
+            href={href(p)}
             aria-current={p === currentPage ? 'page' : undefined}
             className={cn(
               baseBtn,
@@ -86,7 +99,7 @@ export function Pagination({ currentPage, totalPages, buildHref, className }: Pa
 
       {currentPage < totalPages ? (
         <Link
-          href={buildHref(currentPage + 1)}
+          href={href(currentPage + 1)}
           className={cn(baseBtn, 'text-muted-foreground hover:bg-muted')}
           aria-label="Next page"
         >

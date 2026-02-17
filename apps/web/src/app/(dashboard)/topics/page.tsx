@@ -8,7 +8,6 @@ import { TopicCard } from '@/components/dashboard/topic-card';
 import { createClient } from '@/lib/supabase/client';
 import { Pagination } from '@/components/ui/pagination';
 import { DEFAULT_PAGE_SIZE, computeTotalPages } from '@/lib/utils/pagination';
-import { createBuildHref } from '@/lib/utils/build-pagination-href';
 
 const categoryFilters = [
   { label: 'All', value: '' },
@@ -105,7 +104,8 @@ export default function TopicsPage() {
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        buildHref={createBuildHref('/topics', existingParams)}
+        basePath="/topics"
+        existingParams={existingParams}
       />
     </div>
   );

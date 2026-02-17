@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { formatStatus, formatRelativeDate } from '@/lib/utils/format';
 import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
-import { createBuildHref } from '@/lib/utils/build-pagination-href';
 import { Pagination } from '@/components/ui/pagination';
 
 export default async function SubmissionsPage({
@@ -71,7 +70,7 @@ export default async function SubmissionsPage({
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        buildHref={createBuildHref('/submissions')}
+        basePath="/submissions"
       />
     </div>
   );
