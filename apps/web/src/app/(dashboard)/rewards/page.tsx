@@ -1,5 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { PromiseTracker } from '@/components/rewards/promise-tracker';
+import { PendingWishApprovals } from '@/components/rewards/pending-wish-approvals';
+import type { PendingItem, AchievementOption } from '@/components/rewards/pending-wish-approvals';
 import Link from 'next/link';
 import { parsePaginationParams, toSupabaseRange, computeTotalPages } from '@/lib/utils/pagination';
 import { Pagination } from '@/components/ui/pagination';
@@ -33,6 +35,59 @@ export default async function RewardsPage({
     .eq('parent_id', user?.id ?? '')
     .single();
 
+  // Fetch pending wishlist items for linked children
+  const { data: links } = await supabase
+    .from('parent_student_links')
+    .select('student_id')
+    .eq('parent_id', user?.id ?? '');
+
+  const linkedStudentIds = (links ?? []).map((l: any) => l.student_id);
+
+  let pendingItems: PendingItem[] = [];
+  let achievementOptions: AchievementOption[] = [];
+
+  if (linkedStudentIds.length > 0) {
+    const { data: wishlistRows } = await supabase
+      .from('wishlist_items')
+      .select('id, title, description, reward_type, student_id, created_at')
+      .eq('status', 'pending_parent')
+      .in('student_id', linkedStudentIds)
+      .order('created_at', { ascending: false });
+
+    // Build student name map
+    const { data: studentProfiles } = await supabase
+      .from('student_profiles')
+      .select('id, display_name')
+      .in('id', linkedStudentIds);
+
+    const nameMap: Record<string, string> = {};
+    for (const p of studentProfiles ?? []) {
+      nameMap[p.id] = p.display_name ?? 'Your child';
+    }
+
+    pendingItems = (wishlistRows ?? []).map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      reward_type: row.reward_type,
+      student_name: nameMap[row.student_id] ?? 'Your child',
+      created_at: row.created_at,
+    }));
+
+    // Fetch achievements for dropdown
+    const { data: achievements } = await supabase
+      .from('achievements')
+      .select('id, name, description, badge_emoji')
+      .order('sort_order', { ascending: true });
+
+    achievementOptions = (achievements ?? []).map((a: any) => ({
+      id: a.id,
+      name: a.name,
+      description: a.description,
+      badge_emoji: a.badge_emoji,
+    }));
+  }
+
   return (
     <div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -54,6 +109,8 @@ export default async function RewardsPage({
           </p>
         </div>
       )}
+
+      <PendingWishApprovals items={pendingItems} achievements={achievementOptions} />
 
       <h2 className="mt-8 text-lg font-semibold">Pending Rewards</h2>
       <div className="mt-4 space-y-4">

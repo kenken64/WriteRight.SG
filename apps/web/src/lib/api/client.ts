@@ -219,6 +219,30 @@ export function useAddWishlistItem() {
   });
 }
 
+export function useApproveWishlistItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { itemId: string; requiredAchievementId: string }) =>
+      apiFetch(`/wishlist/items/${data.itemId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action: 'approve', requiredAchievementId: data.requiredAchievementId }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['wishlist'] }),
+  });
+}
+
+export function useRejectWishlistItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) =>
+      apiFetch(`/wishlist/items/${itemId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action: 'reject' }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['wishlist'] }),
+  });
+}
+
 export function useClaimReward() {
   const qc = useQueryClient();
   return useMutation({
