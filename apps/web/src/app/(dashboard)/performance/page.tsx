@@ -122,9 +122,11 @@ export default async function PerformancePage() {
   for (const ev of allEvals) {
     if (!Array.isArray(ev.dimension_scores)) continue;
     for (const dim of ev.dimension_scores) {
-      const entry = (dimensionMap[dim.name] ??= { total: 0, maxScore: 0, count: 0 });
-      entry.total += dim.score;
-      entry.maxScore = dim.maxScore;
+      const key = dim.name;
+      if (!key) continue;
+      const entry = (dimensionMap[key] ??= { total: 0, maxScore: 10, count: 0 });
+      entry.total += Number(dim.score) || 0;
+      entry.maxScore = Number(dim.maxScore) || Number((dim as any).max_score) || 10;
       entry.count++;
     }
   }

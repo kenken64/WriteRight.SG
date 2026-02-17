@@ -24,11 +24,22 @@ interface DimensionRadarProps {
 }
 
 export function DimensionRadar({ data }: DimensionRadarProps) {
+  if (!data.length) {
+    return (
+      <div className="w-full h-[280px] sm:h-[300px]">
+        <h3 className="text-sm font-medium text-gray-500 mb-2">Dimension Breakdown</h3>
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          No dimension data available
+        </div>
+      </div>
+    );
+  }
+
   const normalized = data.map((d) => ({
     dimension: d.dimension,
     label: abbreviate(d.dimension),
     score: d.score,
-    fullMark: d.maxScore,
+    fullMark: d.maxScore || 10,
   }));
 
   return (
