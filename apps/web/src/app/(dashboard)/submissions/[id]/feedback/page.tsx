@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { ScoreCard } from '@/components/feedback/score-card';
 import { FeedbackItem } from '@/components/feedback/feedback-item';
+import { ListenToFeedback } from '@/components/feedback/listen-to-feedback';
 import Link from 'next/link';
 
 interface Props {
@@ -27,7 +28,17 @@ export default async function FeedbackPage({ params }: Props) {
         ← Back to Submission
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold">Feedback</h1>
+      <div className="mt-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Feedback</h1>
+        <ListenToFeedback
+          band={evaluation.band}
+          totalScore={evaluation.total_score}
+          dimensions={evaluation.dimension_scores as any}
+          strengths={evaluation.strengths as any[]}
+          weaknesses={evaluation.weaknesses as any[]}
+          nextSteps={evaluation.next_steps as string[]}
+        />
+      </div>
 
       <ScoreCard
         totalScore={evaluation.total_score}

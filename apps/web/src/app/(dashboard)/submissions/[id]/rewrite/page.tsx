@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useRequestRewrite, useRewrites, useSubmission, useEvaluation, type RewriteResult, type RewriteAnnotation } from '@/lib/api/client';
 import { DiffView } from '@/components/feedback/diff-view';
+import { ListenToRewrite } from '@/components/feedback/listen-to-rewrite';
 import Link from 'next/link';
 
 const DIMENSION_COLORS: Record<string, string> = {
@@ -125,10 +126,17 @@ export default function RewritePage() {
       {rewrite && (
         <div className="mt-8">
           {rewrite.target_band && (
-            <p className="mb-4 text-sm font-medium text-muted-foreground">
-              📈 Rewritten to <span className="font-bold text-primary">Band {rewrite.target_band}</span>
-              {currentBand ? <> from <span className="font-bold">Band {currentBand}</span></> : null}
-            </p>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">
+                📈 Rewritten to <span className="font-bold text-primary">Band {rewrite.target_band}</span>
+                {currentBand ? <> from <span className="font-bold">Band {currentBand}</span></> : null}
+              </p>
+              <ListenToRewrite
+                targetBand={rewrite.target_band}
+                bandJustification={rewrite.band_justification}
+                annotations={rewrite.paragraph_annotations}
+              />
+            </div>
           )}
 
           {rewrite.band_justification && (
