@@ -38,7 +38,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
   const statusDescription = getStatusDescription(submission.status);
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
+    <div className="mx-auto w-full max-w-5xl">
       <Link href="/submissions" className="text-sm text-muted-foreground hover:underline">
         ← Back to Submissions
       </Link>

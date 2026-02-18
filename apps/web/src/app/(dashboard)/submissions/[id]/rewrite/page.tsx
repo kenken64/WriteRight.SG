@@ -64,7 +64,7 @@ export default function RewritePage() {
     : undefined;
 
   return (
-    <div className="mx-auto w-full max-w-4xl overflow-hidden px-4 sm:px-0">
+    <div className="mx-auto w-full max-w-5xl overflow-hidden">
       <Link href={`/submissions/${params.id}`} className="text-sm text-muted-foreground hover:underline">
         ← Back to Submission
       </Link>
