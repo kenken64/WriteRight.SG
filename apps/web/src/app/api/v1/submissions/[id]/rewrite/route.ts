@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createAdminSupabaseClient } from "@/lib/supabase/server";
 import { rewriteEssay } from "@writeright/ai/rewrite/engine";
 import type { EvaluationResult } from "@writeright/ai/shared/types";
+import { invalidateCache } from "@/lib/tts-cache";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -69,6 +70,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data, error } = await admin.from("rewrites").insert(rewrite).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Purge stale TTS audio for this submission's rewrite walkthrough (fire-and-forget)
+    invalidateCache("rewrite", id).catch(() => {});
+
     return NextResponse.json({ rewrite: data }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message ?? "Rewrite failed" }, { status: 500 });

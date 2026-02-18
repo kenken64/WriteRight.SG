@@ -37,6 +37,7 @@ export default async function FeedbackPage({ params }: Props) {
           strengths={evaluation.strengths as any[]}
           weaknesses={evaluation.weaknesses as any[]}
           nextSteps={evaluation.next_steps as string[]}
+          submissionId={id}
         />
       </div>
 

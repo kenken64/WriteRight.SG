@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { readFile, writeFile, mkdir, stat } from 'fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'fs/promises';
 import path from 'path';
 
 /**
@@ -8,6 +8,10 @@ import path from 'path';
  * Stores generated audio on a persistent volume (Railway data volume)
  * so subsequent requests for the same text + voice serve instantly
  * without calling the OpenAI TTS API again.
+ *
+ * Cache layout:
+ *   {CACHE_DIR}/{useCase}/{submissionId}/{hash}.mp3   — context-scoped entries
+ *   {CACHE_DIR}/{hash-prefix}/{hash}.mp3              — global entries (no context)
  *
  * Set TTS_CACHE_DIR env var to the Railway volume mount path (e.g. /data/tts-cache).
  * If not set, caching is disabled and every request hits the API.
@@ -26,8 +30,11 @@ function cacheKey(text: string, voice: string, speed: number, useCase?: string):
   return createHash('sha256').update(raw).digest('hex');
 }
 
-function cachePath(key: string, ext: string): string {
-  // Spread into 2-char prefix subdirectory to avoid huge flat directories
+function cachePath(key: string, ext: string, useCase?: string, submissionId?: string): string {
+  if (useCase && submissionId) {
+    return path.join(CACHE_DIR, useCase, submissionId, `${key}.${ext}`);
+  }
+  // Fallback: spread into 2-char prefix subdirectory
   const subdir = key.slice(0, 2);
   return path.join(CACHE_DIR, subdir, `${key}.${ext}`);
 }
@@ -43,11 +50,12 @@ export async function getCached(
   voice: string,
   speed: number,
   useCase?: string,
+  submissionId?: string,
 ): Promise<CacheEntry | null> {
   if (!isCacheEnabled()) return null;
 
   const key = cacheKey(text, voice, speed, useCase);
-  const mp3Path = cachePath(key, 'mp3');
+  const mp3Path = cachePath(key, 'mp3', useCase, submissionId);
 
   try {
     const audio = await readFile(mp3Path);
@@ -64,11 +72,12 @@ export async function putCached(
   speed: number,
   audio: Buffer,
   useCase?: string,
+  submissionId?: string,
 ): Promise<void> {
   if (!isCacheEnabled()) return;
 
   const key = cacheKey(text, voice, speed, useCase);
-  const filePath = cachePath(key, 'mp3');
+  const filePath = cachePath(key, 'mp3', useCase, submissionId);
 
   try {
     await mkdir(path.dirname(filePath), { recursive: true });
@@ -76,6 +85,23 @@ export async function putCached(
   } catch (err) {
     // Non-critical — just skip caching
     console.warn('[tts-cache] Failed to write cache:', (err as Error).message);
+  }
+}
+
+/**
+ * Delete all cached TTS files for a given use case + submission.
+ * Called when a rewrite is regenerated so stale audio is purged.
+ */
+export async function invalidateCache(useCase: string, submissionId: string): Promise<void> {
+  if (!isCacheEnabled()) return;
+
+  const dirPath = path.join(CACHE_DIR, useCase, submissionId);
+
+  try {
+    await rm(dirPath, { recursive: true, force: true });
+    console.info(`[tts-cache] Invalidated cache: ${useCase}/${submissionId}`);
+  } catch (err) {
+    console.warn('[tts-cache] Failed to invalidate cache:', (err as Error).message);
   }
 }
 

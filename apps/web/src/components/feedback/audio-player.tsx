@@ -9,16 +9,18 @@ interface AudioPlayerProps {
   useCase: 'feedback' | 'rewrite' | 'vocabulary';
   /** Button label. */
   label?: string;
+  /** Submission ID for cache scoping. */
+  submissionId?: string;
 }
 
-export function AudioPlayer({ text, useCase, label = 'Listen' }: AudioPlayerProps) {
+export function AudioPlayer({ text, useCase, label = 'Listen', submissionId }: AudioPlayerProps) {
   const { status, progress, error, play, pause, resume, stop } = useTts();
 
   const handleClick = () => {
     switch (status) {
       case 'idle':
       case 'error':
-        play(text, useCase);
+        play(text, useCase, submissionId);
         break;
       case 'loading':
         stop();

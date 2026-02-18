@@ -8,6 +8,7 @@ const ttsRequestSchema = z.object({
   voice: z.enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"]).optional(),
   speed: z.number().min(0.25).max(4.0).optional(),
   useCase: z.enum(["feedback", "rewrite", "vocabulary"]).optional(),
+  submissionId: z.string().uuid().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -17,13 +18,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { text, voice, speed, useCase } = ttsRequestSchema.parse(body);
+    const { text, voice, speed, useCase, submissionId } = ttsRequestSchema.parse(body);
 
     const resolvedVoice = voice ?? "nova";
     const resolvedSpeed = speed ?? 1.0;
 
     // Check disk cache first (Railway volume)
-    const cached = await getCached(text, resolvedVoice, resolvedSpeed, useCase);
+    const cached = await getCached(text, resolvedVoice, resolvedSpeed, useCase, submissionId);
     if (cached) {
       return new NextResponse(new Uint8Array(cached.audio), {
         status: 200,
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
       : await synthesise({ text, voice: resolvedVoice, speed: resolvedSpeed });
 
     // Write to disk cache (fire-and-forget)
-    putCached(text, resolvedVoice, resolvedSpeed, result.audio, useCase).catch(() => {});
+    putCached(text, resolvedVoice, resolvedSpeed, result.audio, useCase, submissionId).catch(() => {});
 
     return new NextResponse(new Uint8Array(result.audio), {
       status: 200,

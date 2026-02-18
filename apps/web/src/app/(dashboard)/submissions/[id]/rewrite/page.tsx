@@ -135,6 +135,7 @@ export default function RewritePage() {
                 targetBand={rewrite.target_band}
                 bandJustification={rewrite.band_justification}
                 annotations={rewrite.paragraph_annotations}
+                submissionId={params.id}
               />
             </div>
           )}

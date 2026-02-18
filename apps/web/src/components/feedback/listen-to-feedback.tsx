@@ -23,6 +23,7 @@ interface ListenToFeedbackProps {
   strengths: FeedbackItemData[];
   weaknesses: FeedbackItemData[];
   nextSteps: string[];
+  submissionId?: string;
 }
 
 /** Compose a natural-sounding script from structured evaluation data. */
@@ -79,5 +80,5 @@ function composeFeedbackScript(props: ListenToFeedbackProps): string {
 export function ListenToFeedback(props: ListenToFeedbackProps) {
   const script = useMemo(() => composeFeedbackScript(props), [props]);
 
-  return <AudioPlayer text={script} useCase="feedback" label="Listen to Feedback" />;
+  return <AudioPlayer text={script} useCase="feedback" label="Listen to Feedback" submissionId={props.submissionId} />;
 }

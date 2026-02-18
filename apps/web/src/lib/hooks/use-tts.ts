@@ -9,7 +9,7 @@ interface UseTtsReturn {
   status: TtsStatus;
   progress: number; // 0-1
   error: string | null;
-  play: (text: string, useCase?: 'feedback' | 'rewrite' | 'vocabulary') => void;
+  play: (text: string, useCase?: 'feedback' | 'rewrite' | 'vocabulary', submissionId?: string) => void;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -46,6 +46,7 @@ interface AudioChunk {
 async function fetchAudioChunk(
   text: string,
   useCase?: string,
+  submissionId?: string,
 ): Promise<AudioChunk> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const csrfToken = readCsrfToken();
@@ -54,7 +55,7 @@ async function fetchAudioChunk(
   const res = await fetch('/api/v1/tts', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ text, useCase }),
+    body: JSON.stringify({ text, useCase, submissionId }),
   });
 
   if (!res.ok) {
@@ -104,7 +105,7 @@ export function useTts(): UseTtsReturn {
   }, [cleanup]);
 
   const play = useCallback(
-    async (text: string, useCase?: 'feedback' | 'rewrite' | 'vocabulary') => {
+    async (text: string, useCase?: 'feedback' | 'rewrite' | 'vocabulary', submissionId?: string) => {
       // Abort any in-flight request
       abortRef.current?.abort();
       cleanup();
@@ -122,7 +123,7 @@ export function useTts(): UseTtsReturn {
 
         for (let i = 0; i < chunks.length; i++) {
           if (controller.signal.aborted) return;
-          audioChunks.push(await fetchAudioChunk(chunks[i], useCase));
+          audioChunks.push(await fetchAudioChunk(chunks[i], useCase, submissionId));
           setProgress((i + 1) / chunks.length * 0.5); // First 50% = loading
         }
 
