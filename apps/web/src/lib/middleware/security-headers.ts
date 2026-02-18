@@ -7,6 +7,7 @@ const CSP = [
   "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data: https:",
+  "media-src 'self' blob:",
   "font-src 'self'",
   "frame-src 'self' https://*.supabase.co",
   "connect-src 'self' https://*.supabase.co https://api.openai.com https://api.stripe.com",
