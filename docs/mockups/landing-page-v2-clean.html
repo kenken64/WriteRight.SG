@@ -215,18 +215,33 @@
         }
 
         .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
         }
 
         .step-card {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 3rem;
+            align-items: center;
             background: white;
-            border-radius: 1rem;
-            padding: 2rem;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            text-align: center;
             border: 1px solid #e5e7eb;
+        }
+
+        .step-card:nth-child(even) {
+            direction: rtl;
+        }
+
+        .step-card:nth-child(even) > * {
+            direction: ltr;
+        }
+
+        .step-text {
+            text-align: left;
         }
 
         .step-number {
@@ -238,24 +253,51 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.5rem;
+            margin-bottom: 1.25rem;
             font-weight: 700;
             font-size: 1.25rem;
         }
 
-        .step-image {
-            width: 100%;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
+        .step-text h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
         }
 
-        .step-image img {
+        .step-text p {
+            font-size: 1.05rem;
+            color: #6b7280;
+            line-height: 1.7;
+        }
+
+        .step-visual {
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 2px solid #e5e7eb;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .step-visual img {
             width: 100%;
             height: auto;
             display: block;
-            border-radius: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .step-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .step-card:nth-child(even) {
+                direction: ltr;
+            }
+            .step-text {
+                text-align: center;
+            }
+            .step-number {
+                margin: 0 auto 1.25rem;
+            }
         }
 
         .grading-mockup {
@@ -768,49 +810,63 @@
         <div class="container">
             <h2 class="section-title">How It Works</h2>
             <div class="steps-grid">
+                <!-- Step 1: Text left, screenshot right -->
                 <div class="step-card">
-                    <div class="step-number">1</div>
-                    <div class="step-image"><img src="screenshots/04-submit-essay-upload.jpg" alt="Submit your essay — upload or paste directly"></div>
-                    <h3>Submit Your Essay</h3>
-                    <p>Upload your essay or paste it directly. Choose from our topic bank or submit any essay topic.</p>
+                    <div class="step-text">
+                        <div class="step-number">1</div>
+                        <h3>Submit Your Essay</h3>
+                        <p>Upload a photo of your handwritten essay, drag in a PDF or Word doc, or type directly in our built-in editor with real-time AI coaching. Choose from our topic bank or write on any topic.</p>
+                    </div>
+                    <div class="step-visual">
+                        <img src="screenshots/04-submit-essay-upload.jpg" alt="Submit your essay — upload photos, PDFs, or Word documents">
+                    </div>
                 </div>
+
+                <!-- Step 2: Screenshot left, text right (reversed) -->
                 <div class="step-card">
-                    <div class="step-number">2</div>
-                    <div class="grading-mockup">
-                        <div class="grading-header">
-                            <h4>Your Results</h4>
-                            <div class="overall-band">Band 4.5</div>
-                        </div>
-                        <div class="dimension-scores">
-                            <div class="dimension">
-                                <div class="dimension-name">Content</div>
-                                <div class="dimension-score">4/6</div>
+                    <div class="step-text">
+                        <div class="step-number">2</div>
+                        <h3>Get AI-Powered Feedback</h3>
+                        <p>Receive detailed band scores for Task Fulfilment and Language, with specific feedback quoting your actual text. See exactly what to improve — in under 5 minutes.</p>
+                    </div>
+                    <div class="step-visual">
+                        <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 2rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e5e7eb;">
+                                <span style="font-size: 1.1rem; font-weight: 600; color: #374151;">Your Results</span>
+                                <span style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 0.5rem 1.25rem; border-radius: 1rem; font-weight: 700; font-size: 1.5rem;">Band 4.5</span>
                             </div>
-                            <div class="dimension">
-                                <div class="dimension-name">Language</div>
-                                <div class="dimension-score">5/6</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div style="background: white; padding: 1rem; border-radius: 0.75rem; text-align: center; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.25rem;">Task Fulfilment</div>
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">8/10</div>
+                                </div>
+                                <div style="background: white; padding: 1rem; border-radius: 0.75rem; text-align: center; border: 1px solid #e5e7eb;">
+                                    <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.25rem;">Language</div>
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">16/20</div>
+                                </div>
                             </div>
-                            <div class="dimension">
-                                <div class="dimension-name">Organisation</div>
-                                <div class="dimension-score">4/6</div>
+                            <div style="background: white; padding: 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; margin-bottom: 1rem;">
+                                <div style="font-size: 0.8rem; font-weight: 600; color: #16a34a; margin-bottom: 0.5rem;">💪 Strengths</div>
+                                <div style="font-size: 0.9rem; color: #374151;">Clear structure with logical paragraph progression. Good use of formal register.</div>
                             </div>
-                            <div class="dimension">
-                                <div class="dimension-name">Task Achievement</div>
-                                <div class="dimension-score">5/6</div>
+                            <div style="background: #fef3c7; padding: 1rem; border-radius: 0.75rem; border: 1px solid #fde68a;">
+                                <div style="font-size: 0.8rem; font-weight: 600; color: #92400e; margin-bottom: 0.5rem;">💡 To Improve</div>
+                                <div style="font-size: 0.9rem; color: #92400e;">"The students should <u>recycle more</u>" — Consider adding specific examples to strengthen this point.</div>
                             </div>
-                        </div>
-                        <div style="background: #fef3c7; padding: 1rem; border-radius: 0.5rem; font-size: 0.9rem; color: #92400e;">
-                            <strong>Key feedback:</strong> Excellent vocabulary usage! Consider adding more complex sentence structures in paragraph 2.
                         </div>
                     </div>
-                    <h3>Get AI-Powered Feedback</h3>
-                    <p>Receive detailed band scores and specific suggestions to improve your writing in under 5 minutes.</p>
                 </div>
+
+                <!-- Step 3: Text left, screenshot right -->
                 <div class="step-card">
-                    <div class="step-number">3</div>
-                    <div class="step-image"><img src="screenshots/05-achievements.jpg" alt="Track your progress with 20+ achievement badges"></div>
-                    <h3>Track Your Progress</h3>
-                    <p>Earn achievements as you improve and see your writing skills grow over time with detailed analytics.</p>
+                    <div class="step-text">
+                        <div class="step-number">3</div>
+                        <h3>Track Your Progress</h3>
+                        <p>Earn 20+ achievement badges across Practice, Improvement, Mastery and Streak categories. Watch your scores improve over time with detailed analytics your parents can follow too.</p>
+                    </div>
+                    <div class="step-visual">
+                        <img src="screenshots/05-achievements.jpg" alt="Track your progress with 20+ achievement badges across 5 categories">
+                    </div>
                 </div>
             </div>
         </div>
