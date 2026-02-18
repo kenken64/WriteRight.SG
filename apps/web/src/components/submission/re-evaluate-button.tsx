@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RotateCcw, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { readCsrfToken } from '@/lib/hooks/use-csrf-token';
 
 interface ReEvaluateButtonProps {
   submissionId: string;
@@ -22,8 +23,13 @@ export function ReEvaluateButton({ submissionId, status }: ReEvaluateButtonProps
     setError(null);
 
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const csrfToken = readCsrfToken();
+      if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
       const res = await fetch(`/api/v1/submissions/${submissionId}/evaluate`, {
         method: 'POST',
+        headers,
       });
 
       if (!res.ok) {
