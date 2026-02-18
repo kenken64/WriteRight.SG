@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WriteRight SG Issue #5: Family Rewards System Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background: #f9fafb;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .header p {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 30px;
+            border-bottom: 4px solid #2563eb;
+            padding-bottom: 15px;
+        }
+        
+        .section-subtitle {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 30px 0 20px 0;
+        }
+        
+        .customer-lens {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .customer-lens h3 {
+            color: #92400e;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+        
+        .customer-perspective {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .parent-view, .student-view {
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .parent-view {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        
+        .student-view {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .flow-step {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 180px;
+        }
+        
+        .flow-step.broken {
+            border: 2px solid #ef4444;
+            background: #fef2f2;
+        }
+        
+        .flow-step.fixed {
+            border: 2px solid #10b981;
+            background: #f0fdf4;
+        }
+        
+        .flow-arrow {
+            font-size: 24px;
+            color: #6b7280;
+        }
+        
+        .mockup-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .mockup {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .mockup-header {
+            background: #f3f4f6;
+            padding: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .mockup-content {
+            padding: 30px;
+        }
+        
+        .current {
+            border-color: #ef4444;
+        }
+        
+        .current .mockup-header {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .proposed {
+            border-color: #10b981;
+        }
+        
+        .proposed .mockup-header {
+            background: #f0fdf4;
+            color: #059669;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .empty-state img {
+            width: 100px;
+            height: 100px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h4 {
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        
+        .wishlist-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .wishlist-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .wishlist-item:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+        
+        .wishlist-item .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .wishlist-item h5 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .wishlist-item p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .progress-bar {
+            background: #e5e7eb;
+            border-radius: 20px;
+            height: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-3-5 {
+            width: 60%;
+            background: linear-gradient(90deg, #2563eb 0%, #4f46e5 100%);
+        }
+        
+        .scoring-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        
+        .scoring-table th,
+        .scoring-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .scoring-table th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        
+        .score {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .score-1 { background: #dc2626; }
+        .score-2 { background: #ea580c; }
+        .score-3 { background: #d97706; }
+        .score-4 { background: #65a30d; }
+        .score-5 { background: #16a34a; }
+        
+        .priority-matrix {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .priority-item {
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid;
+        }
+        
+        .high-priority {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        
+        .medium-priority {
+            background: #fffbeb;
+            border-color: #fed7aa;
+        }
+        
+        .low-priority {
+            background: #f0f9ff;
+            border-color: #bae6fd;
+        }
+        
+        .annotation {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .annotation-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 5px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .mobile-preview {
+            max-width: 375px;
+            margin: 20px auto;
+            border: 8px solid #1f2937;
+            border-radius: 25px;
+            background: #1f2937;
+            padding: 10px;
+        }
+        
+        .mobile-screen {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 600px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-locked {
+            background: #fecaca;
+            color: #b91c1c;
+        }
+        
+        .status-claimable {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        @media (max-width: 768px) {
+            .customer-perspective,
+            .mockup-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .flow-diagram {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>WriteRight SG Issue #5</h1>
+            <p>Family Rewards System — Comprehensive UX Mockup for PO Review</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 1. Executive Summary -->
+        <div class="section">
+            <h2 class="section-title">1. Executive Summary</h2>
+            
+            <div class="customer-lens">
+                <h3>🎯 Customer-Backward Lens</h3>
+                <div class="customer-perspective">
+                    <div class="parent-view">
+                        <h4><strong>👨‍👩‍👧‍👦 Parent (Buyer)</strong></h4>
+                        <p><strong>Want:</strong> "My child practices writing without nagging."</p>
+                        <p><strong>Pain:</strong> Feature is invisible, no guidance on how to use it.</p>
+                        <p><strong>Success:</strong> "My daughter asked to do MORE essays."</p>
+                    </div>
+                    <div class="student-view">
+                        <h4><strong>🎓 Student (User, 14-16)</strong></h4>
+                        <p><strong>Want:</strong> "If I have to do this, I want something real out of it."</p>
+                        <p><strong>Pain:</strong> Empty page, no inspiration, unclear rewards.</p>
+                        <p><strong>Success:</strong> "2 more essays and I get movie night."</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">The Opportunity</h3>
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">The Family Rewards system is WriteRight's <strong>strongest differentiator</strong> — no other essay platform connects parent and child with tangible motivation. But it's currently <strong>invisible and broken</strong>.</p>
+            
+            <h3 class="section-subtitle">Summary of 9 Changes</h3>
+            <table class="scoring-table">
+                <thead>
+                    <tr>
+                        <th>Change</th>
+                        <th>Impact</th>
+                        <th>Effort</th>
+                        <th>Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Student wishlist empty state with examples</td>
+                        <td><span class="score score-5">5</span></td>
+                        <td><span class="score score-2">2</span></td>
+                        <td><span class="score score-5">HIGH</span></td>
+                    </tr>
+                    <tr>
+                        <td>Parent rewards empty state with surprise CTA</td>
+                        <td><span class="score score-5">5</span></td>
+                        <td><span class="score score-2">2</span></td>
+                        <td><span class="score score-5">HIGH</span></td>
+                    </tr>
+                    <tr>
+                        <td>Promise Score explanation</td>
+                        <td><span class="score score-4">4</span></td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-4">HIGH</span></td>
+                    </tr>
+                    <tr>
+                        <td>NEW landing page "Family Rewards" section</td>
+                        <td><span class="score score-5">5</span></td>
+                        <td><span class="score score-4">4</span></td>
+                        <td><span class="score score-5">HIGH</span></td>
+                    </tr>
+                    <tr>
+                        <td>Fix Step 3 copy</td>
+                        <td><span class="score score-3">3</span></td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-3">MED</span></td>
+                    </tr>
+                    <tr>
+                        <td>Split feature cards</td>
+                        <td><span class="score score-3">3</span></td>
+                        <td><span class="score score-2">2</span></td>
+                        <td><span class="score score-3">MED</span></td>
+                    </tr>
+                    <tr>
+                        <td>Fix pricing bullet</td>
+                        <td><span class="score score-2">2</span></td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-2">LOW</span></td>
+                    </tr>
+                    <tr>
+                        <td>Fix "thousands of students" claim</td>
+                        <td><span class="score score-2">2</span></td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-2">LOW</span></td>
+                    </tr>
+                    <tr>
+                        <td>Fix "Singapore's Singapore" typo</td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-1">LOW</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2. The Reward Chain -->
+        <div class="section">
+            <h2 class="section-title">2. The Reward Chain — Current vs Proposed</h2>
+            
+            <h3 class="section-subtitle">Current State (Broken Chain)</h3>
+            <div class="flow-diagram">
+                <div class="flow-step broken">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">😐</div>
+                    <h4>Student wishes</h4>
+                    <p>Empty page, no examples</p>
+                    <span class="status-indicator status-pending">BROKEN</span>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step broken">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🤔</div>
+                    <h4>Parent approves</h4>
+                    <p>No guidance, confused</p>
+                    <span class="status-indicator status-pending">BROKEN</span>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+                    <h4>Student earns</h4>
+                    <p>Works fine</p>
+                    <span class="status-indicator status-claimable">OK</span>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step broken">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">❓</div>
+                    <h4>Parent delivers</h4>
+                    <p>No tracking, promises forgotten</p>
+                    <span class="status-indicator status-locked">BROKEN</span>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">Proposed State (Fixed Chain)</h3>
+            <div class="flow-diagram">
+                <div class="flow-step fixed">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">✨</div>
+                    <h4>Student wishes</h4>
+                    <p>Concrete examples: movie night, bubble tea</p>
+                    <span class="status-indicator status-claimable">FIXED</span>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step fixed">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">👍</div>
+                    <h4>Parent approves</h4>
+                    <p>Clear guidance + surprise rewards</p>
+                    <span class="status-indicator status-claimable">FIXED</span>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+                    <h4>Student earns</h4>
+                    <p>Progress visualization added</p>
+                    <span class="status-indicator status-claimable">ENHANCED</span>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step fixed">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🎉</div>
+                    <h4>Parent delivers</h4>
+                    <p>Promise Score tracks reliability</p>
+                    <span class="status-indicator status-claimable">FIXED</span>
+                </div>
+            </div>
+            
+            <div class="annotation">
+                <div class="annotation-title">🔍 WHY This Matters</div>
+                <p>Each broken link loses 60-80% of potential users. A 15-year-old who sees an empty wishlist won't even try. A confused parent won't engage. The system becomes invisible and useless.</p>
+            </div>
+        </div>
+
+        <!-- 3. Student Experience -->
+        <div class="section">
+            <h2 class="section-title">3. Student Experience — Before/After</h2>
+            
+            <h3 class="section-subtitle">Wishlist Empty State</h3>
+            <div class="mockup-container">
+                <div class="mockup current">
+                    <div class="mockup-header">❌ CURRENT: Empty & Confusing</div>
+                    <div class="mockup-content">
+                        <div class="empty-state">
+                            <div style="font-size: 4rem; opacity: 0.3;">📋</div>
+                            <h4>No wishes yet</h4>
+                            <p>Add something you'd like to earn</p>
+                            <button class="btn btn-secondary" style="margin-top: 15px;">Add Wish</button>
+                        </div>
+                        <div class="annotation">
+                            <div class="annotation-title">👨‍💻 15-year-old thinks:</div>
+                            <p>"What am I supposed to put here? This is vague and boring. I'll skip this."</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mockup proposed">
+                    <div class="mockup-header">✅ PROPOSED: Concrete Examples</div>
+                    <div class="mockup-content">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h3>What would motivate you to write more essays?</h3>
+                            <p style="color: #6b7280;">Choose from these popular rewards, or create your own</p>
+                        </div>
+                        
+                        <div class="wishlist-examples">
+                            <div class="wishlist-item">
+                                <div class="icon">🎬</div>
+                                <h5>Movie Night</h5>
+                                <p>Cinema trip or Netflix marathon</p>
+                                <button class="btn btn-primary">Add This</button>
+                            </div>
+                            <div class="wishlist-item">
+                                <div class="icon">🧋</div>
+                                <h5>Bubble Tea</h5>
+                                <p>Your favorite bbt place</p>
+                                <button class="btn btn-primary">Add This</button>
+                            </div>
+                            <div class="wishlist-item">
+                                <div class="icon">🎮</div>
+                                <h5>Gaming Time</h5>
+                                <p>Extra weekend gaming hours</p>
+                                <button class="btn btn-primary">Add This</button>
+                            </div>
+                            <div class="wishlist-item">
+                                <div class="icon">💸</div>
+                                <h5>Cash Reward</h5>
+                                <p>$10-50 for big achievements</p>
+                                <button class="btn btn-primary">Add This</button>
+                            </div>
+                            <div class="wishlist-item">
+                                <div class="icon">🛍️</div>
+                                <h5>Shopping Trip</h5>
+                                <p>Clothes, gadgets, whatever</p>
+                                <button class="btn btn-primary">Add This</button>
+                            </div>
+                            <div class="wishlist-item">
+                                <div class="icon">✨</div>
+                                <h5>Custom Wish</h5>
+                                <p>Something else entirely</p>
+                                <button class="btn btn-secondary">Create</button>
+                            </div>
+                        </div>
+                        
+                        <div class="annotation">
+                            <div class="annotation-title">🎯 15-year-old thinks:</div>
+                            <p>"Oh, movie night sounds good! And bubble tea too. These are things I actually want. Let me add them."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">Wishlist with Items (NEW: Progress Visualization)</h3>
+            <div class="mockup-container">
+                <div class="mockup current">
+                    <div class="mockup-header">❌ CURRENT: No Progress Shown</div>
+                    <div class="mockup-content">
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                            <h4>🎬 Movie Night <span class="status-indicator status-locked">Locked</span></h4>
+                            <p style="color: #6b7280;">Complete "Essay Master" achievement to unlock</p>
+                        </div>
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+                            <h4>🧋 Bubble Tea <span class="status-indicator status-pending">Pending</span></h4>
+                            <p style="color: #6b7280;">Waiting for parent approval</p>
+                        </div>
+                        <div class="annotation">
+                            <div class="annotation-title">😕 15-year-old thinks:</div>
+                            <p>"I need to complete 'Essay Master' but I have no idea what that means or how close I am. This is frustrating."</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mockup proposed">
+                    <div class="mockup-header">✅ PROPOSED: Clear Progress</div>
+                    <div class="mockup-content">
+                        <div style="background: white; border: 2px solid #2563eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                                <h4>🎬 Movie Night</h4>
+                                <span style="color: #2563eb; font-weight: 600;">3/5 essays</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill progress-3-5"></div>
+                            </div>
+                            <p style="color: #2563eb; font-weight: 500;">2 more essays to unlock! 🔥</p>
+                            <small style="color: #6b7280;">Need 5 essays with Band 3+ scores</small>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                            <h4>🧋 Bubble Tea <span class="status-indicator status-pending">Pending</span></h4>
+                            <p style="color: #6b7280;">Waiting for parent approval</p>
+                        </div>
+                        
+                        <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 20px;">
+                            <h4>🎮 Gaming Time <span class="status-indicator status-claimable">Ready!</span></h4>
+                            <p style="color: #059669; font-weight: 500;">Achievement unlocked! Claim your reward ✨</p>
+                            <button class="btn btn-primary" style="background: #10b981; margin-top: 10px;">Claim Now</button>
+                        </div>
+                        
+                        <div class="annotation">
+                            <div class="annotation-title">🚀 15-year-old thinks:</div>
+                            <p>"Only 2 more essays for movie night! I can do that this week. And I can claim my gaming time right now!"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Parent Experience -->
+        <div class="section">
+            <h2 class="section-title">4. Parent Experience — Before/After</h2>
+            
+            <h3 class="section-subtitle">Rewards Page Empty State</h3>
+            <div class="mockup-container">
+                <div class="mockup current">
+                    <div class="mockup-header">❌ CURRENT: No Guidance</div>
+                    <div class="mockup-content">
+                        <div class="empty-state">
+                            <div style="font-size: 4rem; opacity: 0.3;">🏆</div>
+                            <h4>No rewards to manage</h4>
+                            <p>Your child hasn't created any wishes yet</p>
+                        </div>
+                        <div class="annotation">
+                            <div class="annotation-title">👩‍💼 Parent thinks:</div>
+                            <p>"So I'm supposed to wait for my child to do something? How do I get them started? What should I do here?"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mockup proposed">
+                    <div class="mockup-header">✅ PROPOSED: Proactive Parent Tools</div>
+                    <div class="mockup-content">
+                        <div style="background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 30px;">
+                            <div style="font-size: 2.5rem; margin-bottom: 15px;">💡</div>
+                            <h3>Give Your Child a Head Start</h3>
+                            <p style="margin-bottom: 20px;">Set up surprise rewards that unlock when they hit achievements. They'll discover them as they write!</p>
+                            <button class="btn btn-primary">Add Surprise Reward</button>
+                        </div>
+                        
+                        <div style="background: #f8fafc; border-radius: 10px; padding: 25px;">
+                            <h4 style="margin-bottom: 15px;">How It Works:</h4>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
+                                <div>
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">🎁</div>
+                                    <h5>1. Add Surprise</h5>
+                                    <p style="font-size: 14px; color: #6b7280;">Link rewards to achievements</p>
+                                </div>
+                                <div>
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+                                    <h5>2. Child Writes</h5>
+                                    <p style="font-size: 14px; color: #6b7280;">They work toward goals</p>
+                                </div>
+                                <div>
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">✨</div>
+                                    <h5>3. Magic Moment</h5>
+                                    <p style="font-size: 14px; color: #6b7280;">"Surprise! You unlocked..."</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="annotation">
+                            <div class="annotation-title">🎯 Parent thinks:</div>
+                            <p>"Oh, I can set up surprise rewards! My daughter loves surprises. Let me add movie tickets for when she writes 5 essays."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">Promise Score Explanation</h3>
+            <div class="mockup-container">
+                <div class="mockup current">
+                    <div class="mockup-header">❌ CURRENT: Mysterious Score</div>
+                    <div class="mockup-content">
+                        <div style="text-align: center; padding: 40px;">
+                            <div style="font-size: 4rem; color: #6b7280; margin-bottom: 20px;">—</div>
+                            <h3>Promise Score</h3>
+                            <p style="color: #6b7280;">No data yet</p>
+                        </div>
+                        <div class="annotation">
+                            <div class="annotation-title">🤔 Parent thinks:</div>
+                            <p>"What is Promise Score? Why should I care? Is this some kind of judgment on my parenting?"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mockup proposed">
+                    <div class="mockup-header">✅ PROPOSED: Clear Value Prop</div>
+                    <div class="mockup-content">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <div style="font-size: 4rem; color: #10b981; margin-bottom: 15px;">85</div>
+                            <h3>Promise Score</h3>
+                            <p style="color: #059669; font-weight: 500;">Excellent parent-child trust!</p>
+                        </div>
+                        
+                        <div style="background: #f0fdf4; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                            <h4 style="color: #065f46; margin-bottom: 10px;">What This Means</h4>
+                            <p style="font-size: 14px; color: #047857;">You've followed through on 85% of promised rewards. This builds trust and keeps your child motivated to write.</p>
+                        </div>
+                        
+                        <div style="background: #f8fafc; border-radius: 10px; padding: 20px;">
+                            <h4 style="margin-bottom: 15px;">Recent Activity:</h4>
+                            <div style="font-size: 14px; color: #374151;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>✅ Movie Night (delivered)</span>
+                                    <span style="color: #10b981;">+5 points</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>✅ Bubble Tea (delivered)</span>
+                                    <span style="color: #10b981;">+5 points</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; color: #ef4444;">
+                                    <span>⏰ Gaming Time (overdue)</span>
+                                    <span>-2 points</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="annotation">
+                            <div class="annotation-title">💡 Parent thinks:</div>
+                            <p>"This makes sense! It's tracking how reliable I am. I should deliver on that gaming time promise to keep my score up."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Landing Page Changes -->
+        <div class="section">
+            <h2 class="section-title">5. Landing Page Changes — Before/After</h2>
+            
+            <h3 class="section-subtitle">NEW: Family Rewards Section</h3>
+            <div class="mockup" style="max-width: 100%; margin-bottom: 30px;">
+                <div class="mockup-header" style="background: #f0fdf4; color: #065f46;">✨ PROPOSED: New Landing Page Section</div>
+                <div class="mockup-content">
+                    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 60px 40px; text-align: center; margin-bottom: 40px;">
+                        <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: #92400e;">"My daughter asked to do MORE essays."</h2>
+                        <p style="font-size: 1.3rem; color: #a16207; margin-bottom: 30px;">— Mrs. Lim, parent of Sec 3 student</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px;">
+                            <div style="background: white; border-radius: 12px; padding: 30px; text-align: left;">
+                                <h3 style="color: #1f2937; margin-bottom: 15px;">🎯 For Parents</h3>
+                                <ul style="color: #374151; line-height: 1.8;">
+                                    <li>Your child practices writing <strong>without nagging</strong></li>
+                                    <li>Track promises you make and keep trust high</li>
+                                    <li>See real progress in their essay skills</li>
+                                    <li>Connect learning to rewards they actually want</li>
+                                </ul>
+                                <div style="background: #f3f4f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                                    <small style="color: #6b7280;">"I can finally see her improvement AND she's motivated!"</small>
+                                </div>
+                            </div>
+                            
+                            <div style="background: white; border-radius: 12px; padding: 30px; text-align: left;">
+                                <h3 style="color: #1f2937; margin-bottom: 15px;">🚀 For Students</h3>
+                                <ul style="color: #374151; line-height: 1.8;">
+                                    <li>Clear progress: <strong>"2 more essays = movie night"</strong></li>
+                                    <li>Rewards you actually want (bubble tea, gaming time)</li>
+                                    <li>Surprise rewards from parents when you hit goals</li>
+                                    <li>Real motivation for boring assignments</li>
+                                </ul>
+                                <div style="background: #f3f4f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                                    <small style="color: #6b7280;">"Finally, a reason to write essays that makes sense!"</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 30px; margin-top: 30px;">Start Family Rewards Free</button>
+                    </div>
+                    
+                    <div class="annotation">
+                        <div class="annotation-title">🎯 Why This Works</div>
+                        <p>Outcome-focused (not feature-listy), dual audience addressed, social proof from real parent quote, concrete benefits for both sides.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">Step 3 Copy Fix</h3>
+            <div class="mockup-container">
+                <div class="mockup current">
+                    <div class="mockup-header">❌ CURRENT: Vague</div>
+                    <div class="mockup-content">
+                        <h4>🏆 STEP 03</h4>
+                        <h3>Improve & Earn Rewards</h3>
+                        <p>Track your progress, earn achievement badges, and unlock rewards from your parents' wishlist.</p>
+                    </div>
+                </div>
+                
+                <div class="mockup proposed">
+                    <div class="mockup-header">✅ PROPOSED: Concrete</div>
+                    <div class="mockup-content">
+                        <h4>🏆 STEP 03</h4>
+                        <h3>Earn Real Rewards</h3>
+                        <p>Add wishes like movie nights or bubble tea. Parents approve them and link to achievements. Write essays, unlock rewards, claim them!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">Feature Cards: Split Achievement + Family Rewards</h3>
+            <div class="mockup-container">
+                <div class="mockup current">
+                    <div class="mockup-header">❌ CURRENT: Combined & Unclear</div>
+                    <div class="mockup-content">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 15px;">🏆</div>
+                            <h3>Achievements & Rewards</h3>
+                            <p>Earn badges, build wishlists, parents track promises</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mockup proposed">
+                    <div class="mockup-header">✅ PROPOSED: Two Clear Cards</div>
+                    <div class="mockup-content">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            <div style="text-align: center; padding: 20px; border: 2px solid #e5e7eb; border-radius: 10px;">
+                                <div style="font-size: 2.5rem; margin-bottom: 15px;">🏆</div>
+                                <h3>Achievement System</h3>
+                                <p>30+ badges for writing milestones, streak tracking, skill progression</p>
+                            </div>
+                            
+                            <div style="text-align: center; padding: 20px; border: 2px solid #e5e7eb; border-radius: 10px;">
+                                <div style="font-size: 2.5rem; margin-bottom: 15px;">👨‍👩‍👧‍👦</div>
+                                <h3>Family Rewards</h3>
+                                <p>Parent-child wishlist system, promise tracking, real motivation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Mobile Considerations -->
+        <div class="section">
+            <h2 class="section-title">6. Mobile Considerations</h2>
+            
+            <div style="display: flex; gap: 40px; align-items: flex-start;">
+                <div class="mobile-preview">
+                    <div class="mobile-screen">
+                        <div style="padding: 20px;">
+                            <h4 style="text-align: center; margin-bottom: 20px;">Family Rewards (Mobile)</h4>
+                            
+                            <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                                <h3 style="font-size: 1.3rem; margin-bottom: 10px; color: #92400e;">"My daughter asked to do MORE essays."</h3>
+                                <p style="font-size: 12px; color: #a16207;">— Mrs. Lim, parent</p>
+                            </div>
+                            
+                            <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                                <h4 style="font-size: 14px; margin-bottom: 8px;">👨‍👩‍👧‍👦 Parents:</h4>
+                                <p style="font-size: 12px; color: #6b7280;">Child practices without nagging</p>
+                            </div>
+                            
+                            <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                                <h4 style="font-size: 14px; margin-bottom: 8px;">🎓 Students:</h4>
+                                <p style="font-size: 12px; color: #6b7280;">Clear goals: "2 essays = movie night"</p>
+                            </div>
+                            
+                            <button class="btn btn-primary" style="width: 100%; font-size: 14px;">Start Free</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mobile-preview">
+                    <div class="mobile-screen">
+                        <div style="padding: 20px;">
+                            <h4 style="text-align: center; margin-bottom: 20px;">Wishlist (Mobile)</h4>
+                            
+                            <div style="background: white; border: 2px solid #2563eb; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span>🎬 Movie Night</span>
+                                    <span style="color: #2563eb; font-size: 12px; font-weight: 600;">3/5</span>
+                                </div>
+                                <div style="background: #e5e7eb; border-radius: 10px; height: 6px; margin-bottom: 8px;">
+                                    <div style="width: 60%; height: 100%; background: #2563eb; border-radius: 10px;"></div>
+                                </div>
+                                <p style="color: #2563eb; font-size: 12px; font-weight: 500;">2 more essays!</p>
+                            </div>
+                            
+                            <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span>🎮 Gaming Time</span>
+                                    <span style="color: #10b981; font-size: 11px; background: #d1fae5; padding: 2px 8px; border-radius: 10px;">READY</span>
+                                </div>
+                                <button class="btn btn-primary" style="width: 100%; font-size: 12px; background: #10b981;">Claim Now</button>
+                            </div>
+                            
+                            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>🧋 Bubble Tea</span>
+                                    <span style="color: #f59e0b; font-size: 11px; background: #fef3c7; padding: 2px 8px; border-radius: 10px;">PENDING</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="annotation" style="margin-top: 30px;">
+                <div class="annotation-title">📱 Mobile-First Design</div>
+                <p>Family Rewards section stacks vertically, wishlist cards remain scannable, progress bars scale down but stay visible. Singapore students use phones primarily.</p>
+            </div>
+        </div>
+
+        <!-- 7. Scoring Rubric -->
+        <div class="section">
+            <h2 class="section-title">7. Scoring Rubric</h2>
+            
+            <table class="scoring-table">
+                <thead>
+                    <tr>
+                        <th>Touchpoint</th>
+                        <th>Current</th>
+                        <th>Proposed</th>
+                        <th>Customer Psychology</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Student Wishlist Empty</td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-5">5</span></td>
+                        <td>"I don't know what to put" → "Movie night sounds great!"</td>
+                    </tr>
+                    <tr>
+                        <td>Parent Rewards Empty</td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-5">5</span></td>
+                        <td>"What am I supposed to do?" → "I'll set up surprises!"</td>
+                    </tr>
+                    <tr>
+                        <td>Progress Visualization</td>
+                        <td><span class="score score-1">1</span></td>
+                        <td><span class="score score-5">5</span></td>
+                        <td>"How close am I?" → "2 more essays = movie night!"</td>
+                    </tr>
+                    <tr>
+                        <td>Promise Score</td>
+                        <td><span class="score score-2">2</span></td>
+                        <td><span class="score score-4">4</span></td>
+                        <td>"What's this for?" → "I should keep my promises"</td>
+                    </tr>
+                    <tr>
+                        <td>Landing Page Appeal</td>
+                        <td><span class="score score-3">3</span></td>
+                        <td><span class="score score-5">5</span></td>
+                        <td>"Another essay tool" → "This gets my kid motivated!"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 30px;">
+                <h4>Scoring Legend:</h4>
+                <p><span class="score score-1">1</span> = Broken/Confusing <span class="score score-2">2</span> = Poor <span class="score score-3">3</span> = OK <span class="score score-4">4</span> = Good <span class="score score-5">5</span> = Excellent</p>
+            </div>
+        </div>
+
+        <!-- 8. Implementation Priority Matrix -->
+        <div class="section">
+            <h2 class="section-title">8. Implementation Priority Matrix</h2>
+            
+            <div class="priority-matrix">
+                <div class="priority-item high-priority">
+                    <h4>🚨 HIGH PRIORITY</h4>
+                    <ul>
+                        <li><strong>Student wishlist examples</strong> (Impact: 5, Effort: 2)</li>
+                        <li><strong>Parent surprise rewards CTA</strong> (Impact: 5, Effort: 2)</li>
+                        <li><strong>Landing page Family Rewards section</strong> (Impact: 5, Effort: 4)</li>
+                        <li><strong>Progress visualization</strong> (Impact: 5, Effort: 3)</li>
+                    </ul>
+                </div>
+                
+                <div class="priority-item medium-priority">
+                    <h4>⚠️ MEDIUM PRIORITY</h4>
+                    <ul>
+                        <li><strong>Promise Score explanation</strong> (Impact: 4, Effort: 1)</li>
+                        <li><strong>Step 3 copy fix</strong> (Impact: 3, Effort: 1)</li>
+                        <li><strong>Split feature cards</strong> (Impact: 3, Effort: 2)</li>
+                    </ul>
+                </div>
+                
+                <div class="priority-item low-priority">
+                    <h4>ℹ️ LOW PRIORITY</h4>
+                    <ul>
+                        <li><strong>Pricing bullet fix</strong> (Impact: 2, Effort: 1)</li>
+                        <li><strong>"Thousands" claim fix</strong> (Impact: 2, Effort: 1)</li>
+                        <li><strong>Login typo fix</strong> (Impact: 1, Effort: 1)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="annotation">
+                <div class="annotation-title">🎯 Implementation Strategy</div>
+                <p><strong>Week 1:</strong> High priority items (biggest customer impact)<br>
+                <strong>Week 2:</strong> Medium priority cleanup<br>
+                <strong>Week 3:</strong> Low priority polish + testing</p>
+            </div>
+        </div>
+
+        <!-- Best Practices Research -->
+        <div class="section">
+            <h2 class="section-title">9. Best Practices Research</h2>
+            
+            <h3 class="section-subtitle">Successful Parent-Child Reward Systems</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin: 30px 0;">
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+                    <h4 style="color: #1f2937; margin-bottom: 15px;">🎓 ClassDojo Pattern</h4>
+                    <ul style="font-size: 14px; line-height: 1.6; color: #374151;">
+                        <li><strong>Immediate feedback</strong> - Points awarded instantly</li>
+                        <li><strong>Parent transparency</strong> - Real-time updates to parents</li>
+                        <li><strong>Student agency</strong> - Kids can see their own progress</li>
+                        <li><strong>Celebration moments</strong> - Visual celebrations when goals hit</li>
+                    </ul>
+                    <div class="annotation" style="margin-top: 15px;">
+                        <div class="annotation-title">✅ Applied to WriteRight</div>
+                        <p style="font-size: 13px;">Progress bars, instant achievement unlocks, parent dashboard updates</p>
+                    </div>
+                </div>
+                
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+                    <h4 style="color: #1f2937; margin-bottom: 15px;">🦸‍♀️ Epic! Reading Pattern</h4>
+                    <ul style="font-size: 14px; line-height: 1.6; color: #374151;">
+                        <li><strong>Parent-set goals</strong> - Parents define reading minutes</li>
+                        <li><strong>Kid picks rewards</strong> - Children choose their own motivators</li>
+                        <li><strong>Progress tracking</strong> - Clear "X minutes to goal"</li>
+                        <li><strong>Celebration animations</strong> - Fun unlocks when achieved</li>
+                    </ul>
+                    <div class="annotation" style="margin-top: 15px;">
+                        <div class="annotation-title">✅ Applied to WriteRight</div>
+                        <p style="font-size: 13px;">Wishlist creation by students, parent approval system, clear progress</p>
+                    </div>
+                </div>
+                
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+                    <h4 style="color: #1f2937; margin-bottom: 15px;">🦉 Duolingo Pattern</h4>
+                    <ul style="font-size: 14px; line-height: 1.6; color: #374151;">
+                        <li><strong>Streak psychology</strong> - Fear of breaking chains</li>
+                        <li><strong>Just enough friction</strong> - Not too easy, not too hard</li>
+                        <li><strong>Multiple motivation types</strong> - Leagues, friends, achievements</li>
+                        <li><strong>Persistent reminders</strong> - Gentle nudges to continue</li>
+                    </ul>
+                    <div class="annotation" style="margin-top: 15px;">
+                        <div class="annotation-title">✅ Applied to WriteRight</div>
+                        <p style="font-size: 13px;">Writing streaks, balanced achievement difficulty, family accountability</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">Key Insights for Dual-Audience (Parent Buyer + Student User)</h3>
+            
+            <div style="background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 30px;">
+                <h4 style="color: #92400e; margin-bottom: 20px;">🧠 Psychology Patterns That Work</h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div>
+                        <h5 style="color: #1f2937; margin-bottom: 15px;">For Students (Users):</h5>
+                        <ul style="color: #374151; line-height: 1.8;">
+                            <li><strong>Concrete rewards</strong> - Not abstract "improvement"</li>
+                            <li><strong>Clear progress</strong> - "2 more essays = movie night"</li>
+                            <li><strong>Immediate feedback</strong> - See progress right away</li>
+                            <li><strong>Some control</strong> - They choose what to work toward</li>
+                            <li><strong>Social proof</strong> - Other kids are doing this too</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h5 style="color: #1f2937; margin-bottom: 15px;">For Parents (Buyers):</h5>
+                        <ul style="color: #374151; line-height: 1.8;">
+                            <li><strong>Outcome promises</strong> - "Child practices without nagging"</li>
+                            <li><strong>Trust building</strong> - Promise Score shows reliability matters</li>
+                            <li><strong>Transparency</strong> - See exactly what child is working on</li>
+                            <li><strong>Easy setup</strong> - Surprise rewards require minimal effort</li>
+                            <li><strong>Educational value</strong> - Rewards tied to real learning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conclusion -->
+        <div class="section">
+            <h2 class="section-title">Ready for Implementation</h2>
+            
+            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #16a34a; border-radius: 16px; padding: 40px; text-align: center;">
+                <h3 style="color: #15803d; font-size: 2rem; margin-bottom: 20px;">Customer-Backward Lens Applied ✅</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin: 30px 0; text-align: left;">
+                    <div style="background: white; border-radius: 10px; padding: 20px;">
+                        <h4 style="color: #1f2937; margin-bottom: 10px;">🎯 Problem Addressed</h4>
+                        <p style="font-size: 14px; color: #374151;">Invisible feature → Clear value prop with concrete examples</p>
+                    </div>
+                    
+                    <div style="background: white; border-radius: 10px; padding: 20px;">
+                        <h4 style="color: #1f2937; margin-bottom: 10px;">👥 Both Audiences Served</h4>
+                        <p style="font-size: 14px; color: #374151;">Parent gets "no nagging", Student gets "movie night"</p>
+                    </div>
+                    
+                    <div style="background: white; border-radius: 10px; padding: 20px;">
+                        <h4 style="color: #1f2937; margin-bottom: 10px;">🚀 Implementation Ready</h4>
+                        <p style="font-size: 14px; color: #374151;">Prioritized by impact × effort, ready for development</p>
+                    </div>
+                </div>
+                
+                <p style="color: #15803d; font-size: 1.2rem; margin-bottom: 20px;">This mockup is ready for Sebastian, SW L, and Ken review.</p>
+                
+                <div style="background: white; border-radius: 10px; padding: 20px; text-align: left;">
+                    <h4 style="color: #1f2937; margin-bottom: 10px;">Next Steps:</h4>
+                    <ol style="color: #374151; line-height: 1.8;">
+                        <li>PO review and approval of high-priority changes</li>
+                        <li>Development team estimation and sprint planning</li>
+                        <li>UI/UX team creates final designs based on mockups</li>
+                        <li>Implementation in priority order (high → medium → low)</li>
+                        <li>A/B testing of new Family Rewards landing section</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
