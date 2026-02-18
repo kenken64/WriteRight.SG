@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { notFound } from 'next/navigation';
 import { formatStatus, formatConfidence, getStatusDescription } from '@/lib/utils/format';
 import { OcrSection } from '@/components/submission/ocr-section';
+import { ReEvaluateButton } from '@/components/submission/re-evaluate-button';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -75,6 +76,8 @@ export default async function SubmissionDetailPage({ params }: Props) {
           />
         </div>
       )}
+
+      <ReEvaluateButton submissionId={id} status={submission.status} />
 
       {submission.status === 'evaluated' && (
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
