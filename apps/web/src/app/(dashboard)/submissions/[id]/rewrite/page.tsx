@@ -2,9 +2,20 @@
 
 import { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { useRequestRewrite, useRewrites, useSubmission, useEvaluation, type RewriteResult } from '@/lib/api/client';
+import { useRequestRewrite, useRewrites, useSubmission, useEvaluation, type RewriteResult, type RewriteAnnotation } from '@/lib/api/client';
 import { DiffView } from '@/components/feedback/diff-view';
 import Link from 'next/link';
+
+const DIMENSION_COLORS: Record<string, string> = {
+  Language: 'bg-blue-100 text-blue-800 border-blue-200',
+  Content: 'bg-amber-100 text-amber-800 border-amber-200',
+  Organisation: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'Audience & Register': 'bg-purple-100 text-purple-800 border-purple-200',
+};
+
+function getDimensionStyle(dimension: string) {
+  return DIMENSION_COLORS[dimension] ?? 'bg-gray-100 text-gray-700 border-gray-200';
+}
 
 /** Strip markdown code-fence wrappers that the OCR pipeline sometimes adds. */
 function stripMarkdownFences(text: string): string {
@@ -17,6 +28,7 @@ function stripMarkdownFences(text: string): string {
 export default function RewritePage() {
   const params = useParams<{ id: string }>();
   const [mode, setMode] = useState<'exam_optimised' | 'clarity_optimised'>('exam_optimised');
+  const [view, setView] = useState<'annotated' | 'diff'>('annotated');
   const requestRewrite = useRequestRewrite();
   const submission = useSubmission(params.id);
   const evaluation = useEvaluation(params.id);
@@ -98,12 +110,95 @@ export default function RewritePage() {
             </p>
           )}
 
-          <DiffView
-            original={originalText}
-            rewritten={stripMarkdownFences(rewrite.rewritten_text)}
-            diffPayload={rewrite.diff_payload as Array<{ type: 'add' | 'remove' | 'unchanged'; value: string }> | undefined}
-            rationale={rationale}
-          />
+          {rewrite.band_justification && (
+            <div className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50/50 p-5">
+              <h3 className="text-sm font-semibold text-indigo-900">
+                Why this rewrite scores Band {rewrite.target_band}
+              </h3>
+              <p className="mt-2 text-sm text-indigo-800">
+                {rewrite.band_justification.summary}
+              </p>
+
+              {rewrite.band_justification.keyChanges?.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                    Key Changes
+                  </h4>
+                  {rewrite.band_justification.keyChanges.map((change, i) => (
+                    <div key={i} className="rounded-md border border-indigo-100 bg-white p-3">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <div>
+                          <span className="text-xs font-medium text-red-600">Before</span>
+                          <p className="mt-0.5 text-sm text-gray-700 italic">&ldquo;{change.original}&rdquo;</p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-green-600">After</span>
+                          <p className="mt-0.5 text-sm text-gray-700 italic">&ldquo;{change.rewritten}&rdquo;</p>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm text-indigo-700">
+                        <span className="font-medium">Why:</span> {change.reason}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* View toggle */}
+          {rewrite.paragraph_annotations && rewrite.paragraph_annotations.length > 0 && (
+            <div className="mb-4 flex gap-2">
+              {(['annotated', 'diff'] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
+                    view === v ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground'
+                  }`}
+                >
+                  {v === 'annotated' ? 'Annotated Rewrite' : 'Diff View'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Annotated view — paragraph by paragraph with coaching notes */}
+          {view === 'annotated' && rewrite.paragraph_annotations && rewrite.paragraph_annotations.length > 0 ? (
+            <div className="space-y-1">
+              {stripMarkdownFences(rewrite.rewritten_text)
+                .split(/\n\n+/)
+                .map((paragraph, idx) => {
+                  const annotation = rewrite.paragraph_annotations?.find(
+                    (a) => a.paragraphIndex === idx,
+                  );
+                  return (
+                    <div key={idx}>
+                      <p className="text-sm leading-relaxed text-gray-900">{paragraph}</p>
+                      {annotation && (
+                        <div className="my-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2">
+                          <span
+                            className={`mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${getDimensionStyle(annotation.dimension)}`}
+                          >
+                            {annotation.dimension}
+                          </span>
+                          <p className="text-xs leading-snug text-amber-900">
+                            {annotation.feedback}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <DiffView
+              original={originalText}
+              rewritten={stripMarkdownFences(rewrite.rewritten_text)}
+              diffPayload={rewrite.diff_payload as Array<{ type: 'add' | 'remove' | 'unchanged'; value: string }> | undefined}
+              rationale={rationale}
+            />
+          )}
         </div>
       )}
     </div>

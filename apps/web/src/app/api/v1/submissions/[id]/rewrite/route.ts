@@ -60,6 +60,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       rewritten_text: result.rewrittenText,
       diff_payload: result.diffPayload,
       rationale: result.rationale,
+      band_justification: result.bandJustification,
+      paragraph_annotations: result.paragraphAnnotations,
       target_band: result.targetBand,
     };
 

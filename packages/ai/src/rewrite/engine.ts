@@ -41,12 +41,22 @@ export async function rewriteEssay(input: RewriteInput): Promise<RewriteResult> 
 
   const rewrittenText = parsed.rewrittenText ?? "";
   const diffPayload = computeDiff(input.essayText, rewrittenText);
+  const paragraphAnnotations = Array.isArray(parsed.paragraphAnnotations)
+    ? parsed.paragraphAnnotations.map((a: any) => ({
+        paragraphIndex: a.paragraphIndex ?? 0,
+        originalSnippet: a.originalSnippet ?? "",
+        feedback: a.feedback ?? "",
+        dimension: a.dimension ?? "",
+      }))
+    : [];
 
   return {
     mode: input.mode,
     rewrittenText,
     diffPayload,
     rationale: parsed.rationale ?? {},
+    bandJustification: parsed.bandJustification ?? null,
+    paragraphAnnotations,
     targetBand,
   };
 }

@@ -27,11 +27,31 @@ export interface EvaluationResult {
   reviewRecommended: boolean;
 }
 
+export interface BandKeyChange {
+  original: string;
+  rewritten: string;
+  reason: string;
+}
+
+export interface BandJustification {
+  summary: string;
+  keyChanges: BandKeyChange[];
+}
+
+export interface RewriteAnnotation {
+  paragraphIndex: number;
+  originalSnippet: string;
+  feedback: string;
+  dimension: string;
+}
+
 export interface RewriteResult {
   mode: "exam_optimised" | "clarity_optimised";
   rewrittenText: string;
   diffPayload: DiffChange[];
   rationale: Record<string, string>;
+  bandJustification: BandJustification | null;
+  paragraphAnnotations: RewriteAnnotation[];
   targetBand: number;
 }
 

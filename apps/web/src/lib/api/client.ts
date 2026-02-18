@@ -99,6 +99,24 @@ export function useRequestEvaluation() {
   });
 }
 
+export interface BandKeyChange {
+  original: string;
+  rewritten: string;
+  reason: string;
+}
+
+export interface BandJustification {
+  summary: string;
+  keyChanges: BandKeyChange[];
+}
+
+export interface RewriteAnnotation {
+  paragraphIndex: number;
+  originalSnippet: string;
+  feedback: string;
+  dimension: string;
+}
+
 export interface RewriteResult {
   id: string;
   submission_id: string;
@@ -106,6 +124,8 @@ export interface RewriteResult {
   rewritten_text: string;
   diff_payload: unknown;
   rationale: Record<string, string> | null;
+  band_justification: BandJustification | null;
+  paragraph_annotations: RewriteAnnotation[] | null;
   target_band: string | null;
   created_at: string;
 }
