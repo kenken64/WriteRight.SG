@@ -61,9 +61,10 @@ export function OcrSectionWithHighlights({
           occurrence_index: pickerState.occurrenceIndex,
           ...(noteId && { note_id: noteId }),
         });
-
-        setPickerState(null);
+      } catch (err) {
+        console.error('Failed to create highlight:', err);
       } finally {
+        setPickerState(null);
         setIsCreating(false);
       }
     },
