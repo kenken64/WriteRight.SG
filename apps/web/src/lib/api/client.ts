@@ -666,3 +666,123 @@ export function useUpdateGalleryCategory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['gallery'] }),
   });
 }
+
+// ─── Guided Rewrite ───
+export type GuidedTechniqueKey =
+  | 'so_what_chain'
+  | 'five_senses_snapshot'
+  | 'person_quote_detail'
+  | 'before_during_after'
+  | 'contrast_sentence'
+  | 'zoom_structure';
+
+export interface SoWhatChainData {
+  steps: string[];
+}
+
+export interface FiveSensesData {
+  sensoryDetail: string;
+}
+
+export interface PersonQuoteData {
+  personName: string;
+  quote: string;
+  physicalDetail: string;
+}
+
+export interface BeforeDuringAfterData {
+  before: string;
+  during: string;
+  after: string;
+}
+
+export interface ContrastSentenceData {
+  sentence: string;
+}
+
+export interface ZoomStructureData {
+  closeUp: string;
+  bigPicture: string;
+  personalConnection: string;
+}
+
+export type GuidedResponseData =
+  | SoWhatChainData
+  | FiveSensesData
+  | PersonQuoteData
+  | BeforeDuringAfterData
+  | ContrastSentenceData
+  | ZoomStructureData;
+
+export interface GuidedRewriteResponse {
+  id: string;
+  submission_id: string;
+  student_id: string;
+  technique_key: GuidedTechniqueKey;
+  response_data: GuidedResponseData;
+  is_complete: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export function useGuidedRewriteResponses(submissionId: string) {
+  return useQuery({
+    queryKey: ['guided-rewrite', submissionId],
+    queryFn: () =>
+      apiFetch<{ responses: GuidedRewriteResponse[] }>(
+        `/submissions/${submissionId}/guided-rewrite`,
+      ).then((res) => res.responses),
+    enabled: !!submissionId,
+  });
+}
+
+export function useUpsertGuidedResponse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      submissionId: string;
+      technique_key: GuidedTechniqueKey;
+      response_data: GuidedResponseData;
+      is_complete: boolean;
+    }) =>
+      apiFetch<{ response: GuidedRewriteResponse }>(
+        `/submissions/${data.submissionId}/guided-rewrite`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            technique_key: data.technique_key,
+            response_data: data.response_data,
+            is_complete: data.is_complete,
+          }),
+        },
+      ),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['guided-rewrite', variables.submissionId] });
+    },
+  });
+}
+
+export function usePatchGuidedResponse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      submissionId: string;
+      techniqueKey: GuidedTechniqueKey;
+      response_data?: GuidedResponseData;
+      is_complete?: boolean;
+    }) =>
+      apiFetch<{ response: GuidedRewriteResponse }>(
+        `/submissions/${data.submissionId}/guided-rewrite/${data.techniqueKey}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            ...(data.response_data !== undefined && { response_data: data.response_data }),
+            ...(data.is_complete !== undefined && { is_complete: data.is_complete }),
+          }),
+        },
+      ),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['guided-rewrite', variables.submissionId] });
+    },
+  });
+}

@@ -2,9 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
+import * as Tabs from '@radix-ui/react-tabs';
 import { useRequestRewrite, useRewrites, useSubmission, useEvaluation, type RewriteResult, type RewriteAnnotation } from '@/lib/api/client';
 import { DiffView } from '@/components/feedback/diff-view';
 import { ListenToRewrite } from '@/components/feedback/listen-to-rewrite';
+import { GuidedRewritePanel } from '@/components/rewrite/guided-rewrite-panel';
 import Link from 'next/link';
 
 const DIMENSION_COLORS: Record<string, string> = {
@@ -69,168 +71,192 @@ export default function RewritePage() {
         ← Back to Submission
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold">Model Rewrite</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        ⚠️ Reference Model Answer — for learning purposes only. Choose your target band below.
-      </p>
+      <h1 className="mt-4 text-2xl font-bold">Rewrite</h1>
 
-      <div className="mt-6 flex gap-3">
-        {(['exam_optimised', 'clarity_optimised'] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`rounded-md border px-4 py-2 text-sm ${
-              mode === m ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground'
-            }`}
+      <Tabs.Root defaultValue="ai-rewrite" className="mt-4">
+        <Tabs.List className="flex border-b border-gray-200 gap-1">
+          <Tabs.Trigger
+            value="ai-rewrite"
+            className="px-4 py-2 text-sm font-medium text-gray-500 border-b-2 border-transparent data-[state=active]:text-blue-600 data-[state=active]:border-blue-600 transition-colors"
           >
-            {m === 'exam_optimised' ? '🎯 Exam-Optimised' : '✨ Clarity-Optimised'}
-          </button>
-        ))}
-      </div>
+            AI Rewrite
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="guided"
+            className="px-4 py-2 text-sm font-medium text-gray-500 border-b-2 border-transparent data-[state=active]:text-blue-600 data-[state=active]:border-blue-600 transition-colors"
+          >
+            Guided Rewrite
+          </Tabs.Trigger>
+        </Tabs.List>
 
-      {currentBand != null && currentBand < 5 && (
-        <div className="mt-4">
-          <label className="text-sm font-medium text-muted-foreground">Target Band</label>
-          <div className="mt-1.5 flex gap-2">
-            {Array.from({ length: 5 - currentBand }, (_, i) => currentBand + 1 + i).map((band) => (
+        <Tabs.Content value="ai-rewrite" className="mt-4">
+          <p className="text-sm text-muted-foreground">
+            ⚠️ Reference Model Answer — for learning purposes only. Choose your target band below.
+          </p>
+
+          <div className="mt-6 flex gap-3">
+            {(['exam_optimised', 'clarity_optimised'] as const).map((m) => (
               <button
-                key={band}
-                onClick={() => setTargetBand(band === (targetBand ?? currentBand + 1) ? undefined : band)}
-                className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-                  (targetBand ?? currentBand + 1) === band
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'text-muted-foreground'
+                key={m}
+                onClick={() => setMode(m)}
+                className={`rounded-md border px-4 py-2 text-sm ${
+                  mode === m ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground'
                 }`}
               >
-                Band {band}
+                {m === 'exam_optimised' ? '🎯 Exam-Optimised' : '✨ Clarity-Optimised'}
               </button>
             ))}
           </div>
-        </div>
-      )}
 
-      <button
-        onClick={handleGenerate}
-        disabled={requestRewrite.isPending}
-        className="mt-4 rounded-md bg-primary px-6 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-      >
-        {requestRewrite.isPending ? 'Generating...' : 'Generate Rewrite'}
-      </button>
-
-      {requestRewrite.isError && (
-        <p className="mt-4 text-sm text-red-600">
-          {requestRewrite.error?.message ?? 'Something went wrong. Please try again.'}
-        </p>
-      )}
-
-      {rewrite && (
-        <div className="mt-8">
-          {rewrite.target_band && (
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-medium text-muted-foreground">
-                📈 Rewritten to <span className="font-bold text-primary">Band {rewrite.target_band}</span>
-                {currentBand ? <> from <span className="font-bold">Band {currentBand}</span></> : null}
-              </p>
-              <ListenToRewrite
-                targetBand={rewrite.target_band}
-                bandJustification={rewrite.band_justification}
-                annotations={rewrite.paragraph_annotations}
-                submissionId={params.id}
-              />
+          {currentBand != null && currentBand < 5 && (
+            <div className="mt-4">
+              <label className="text-sm font-medium text-muted-foreground">Target Band</label>
+              <div className="mt-1.5 flex gap-2">
+                {Array.from({ length: 5 - currentBand }, (_, i) => currentBand + 1 + i).map((band) => (
+                  <button
+                    key={band}
+                    onClick={() => setTargetBand(band === (targetBand ?? currentBand + 1) ? undefined : band)}
+                    className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                      (targetBand ?? currentBand + 1) === band
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    Band {band}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {rewrite.band_justification && (
-            <div className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50/50 p-5">
-              <h3 className="text-sm font-semibold text-indigo-900">
-                Why this rewrite scores Band {rewrite.target_band}
-              </h3>
-              <p className="mt-2 text-sm text-indigo-800">
-                {rewrite.band_justification.summary}
-              </p>
+          <button
+            onClick={handleGenerate}
+            disabled={requestRewrite.isPending}
+            className="mt-4 rounded-md bg-primary px-6 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+          >
+            {requestRewrite.isPending ? 'Generating...' : 'Generate Rewrite'}
+          </button>
 
-              {rewrite.band_justification.keyChanges?.length > 0 && (
-                <div className="mt-4 space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-                    Key Changes
-                  </h4>
-                  {rewrite.band_justification.keyChanges.map((change, i) => (
-                    <div key={i} className="rounded-md border border-indigo-100 bg-white p-3">
-                      <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
-                        <div className="min-w-0">
-                          <span className="text-xs font-medium text-red-600">Before</span>
-                          <p className="mt-0.5 break-words text-sm text-gray-700 italic">&ldquo;{change.original}&rdquo;</p>
+          {requestRewrite.isError && (
+            <p className="mt-4 text-sm text-red-600">
+              {requestRewrite.error?.message ?? 'Something went wrong. Please try again.'}
+            </p>
+          )}
+
+          {rewrite && (
+            <div className="mt-8">
+              {rewrite.target_band && (
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    📈 Rewritten to <span className="font-bold text-primary">Band {rewrite.target_band}</span>
+                    {currentBand ? <> from <span className="font-bold">Band {currentBand}</span></> : null}
+                  </p>
+                  <ListenToRewrite
+                    targetBand={rewrite.target_band}
+                    bandJustification={rewrite.band_justification}
+                    annotations={rewrite.paragraph_annotations}
+                    submissionId={params.id}
+                  />
+                </div>
+              )}
+
+              {rewrite.band_justification && (
+                <div className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50/50 p-5">
+                  <h3 className="text-sm font-semibold text-indigo-900">
+                    Why this rewrite scores Band {rewrite.target_band}
+                  </h3>
+                  <p className="mt-2 text-sm text-indigo-800">
+                    {rewrite.band_justification.summary}
+                  </p>
+
+                  {rewrite.band_justification.keyChanges?.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                        Key Changes
+                      </h4>
+                      {rewrite.band_justification.keyChanges.map((change, i) => (
+                        <div key={i} className="rounded-md border border-indigo-100 bg-white p-3">
+                          <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
+                            <div className="min-w-0">
+                              <span className="text-xs font-medium text-red-600">Before</span>
+                              <p className="mt-0.5 break-words text-sm text-gray-700 italic">&ldquo;{change.original}&rdquo;</p>
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-xs font-medium text-green-600">After</span>
+                              <p className="mt-0.5 break-words text-sm text-gray-700 italic">&ldquo;{change.rewritten}&rdquo;</p>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-sm text-indigo-700">
+                            <span className="font-medium">Why:</span> {change.reason}
+                          </p>
                         </div>
-                        <div className="min-w-0">
-                          <span className="text-xs font-medium text-green-600">After</span>
-                          <p className="mt-0.5 break-words text-sm text-gray-700 italic">&ldquo;{change.rewritten}&rdquo;</p>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-sm text-indigo-700">
-                        <span className="font-medium">Why:</span> {change.reason}
-                      </p>
+                      ))}
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* View toggle */}
+              {rewrite.paragraph_annotations && rewrite.paragraph_annotations.length > 0 && (
+                <div className="mb-4 flex gap-2">
+                  {(['annotated', 'diff'] as const).map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setView(v)}
+                      className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
+                        view === v ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {v === 'annotated' ? 'Annotated Rewrite' : 'Diff View'}
+                    </button>
                   ))}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* View toggle */}
-          {rewrite.paragraph_annotations && rewrite.paragraph_annotations.length > 0 && (
-            <div className="mb-4 flex gap-2">
-              {(['annotated', 'diff'] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
-                    view === v ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  {v === 'annotated' ? 'Annotated Rewrite' : 'Diff View'}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Annotated view — paragraph by paragraph with coaching notes */}
-          {view === 'annotated' && rewrite.paragraph_annotations && rewrite.paragraph_annotations.length > 0 ? (
-            <div className="space-y-1">
-              {stripMarkdownFences(rewrite.rewritten_text)
-                .split(/\n\n+/)
-                .map((paragraph, idx) => {
-                  const annotation = rewrite.paragraph_annotations?.find(
-                    (a) => a.paragraphIndex === idx,
-                  );
-                  return (
-                    <div key={idx}>
-                      <p className="break-words text-sm leading-relaxed text-gray-900">{paragraph}</p>
-                      {annotation && (
-                        <div className="my-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2">
-                          <span
-                            className={`mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${getDimensionStyle(annotation.dimension)}`}
-                          >
-                            {annotation.dimension}
-                          </span>
-                          <p className="text-xs leading-snug text-amber-900">
-                            {annotation.feedback}
-                          </p>
+              {/* Annotated view — paragraph by paragraph with coaching notes */}
+              {view === 'annotated' && rewrite.paragraph_annotations && rewrite.paragraph_annotations.length > 0 ? (
+                <div className="space-y-1">
+                  {stripMarkdownFences(rewrite.rewritten_text)
+                    .split(/\n\n+/)
+                    .map((paragraph, idx) => {
+                      const annotation = rewrite.paragraph_annotations?.find(
+                        (a) => a.paragraphIndex === idx,
+                      );
+                      return (
+                        <div key={idx}>
+                          <p className="break-words text-sm leading-relaxed text-gray-900">{paragraph}</p>
+                          {annotation && (
+                            <div className="my-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2">
+                              <span
+                                className={`mt-0.5 shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${getDimensionStyle(annotation.dimension)}`}
+                              >
+                                {annotation.dimension}
+                              </span>
+                              <p className="text-xs leading-snug text-amber-900">
+                                {annotation.feedback}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                </div>
+              ) : (
+                <DiffView
+                  original={originalText}
+                  rewritten={stripMarkdownFences(rewrite.rewritten_text)}
+                  diffPayload={rewrite.diff_payload as Array<{ type: 'add' | 'remove' | 'unchanged'; value: string }> | undefined}
+                  rationale={rationale}
+                />
+              )}
             </div>
-          ) : (
-            <DiffView
-              original={originalText}
-              rewritten={stripMarkdownFences(rewrite.rewritten_text)}
-              diffPayload={rewrite.diff_payload as Array<{ type: 'add' | 'remove' | 'unchanged'; value: string }> | undefined}
-              rationale={rationale}
-            />
           )}
-        </div>
-      )}
+        </Tabs.Content>
+
+        <Tabs.Content value="guided" className="mt-4">
+          <GuidedRewritePanel submissionId={params.id} originalText={originalText} />
+        </Tabs.Content>
+      </Tabs.Root>
     </div>
   );
 }
