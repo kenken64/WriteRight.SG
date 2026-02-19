@@ -131,7 +131,13 @@ export async function visionCompletion(
       });
     }
 
-    return response.choices[0]?.message?.content ?? "";
+    const content = response.choices[0]?.message?.content ?? "";
+    if (!content.trim()) {
+      throw new Error(
+        `Vision model returned empty response (model: ${model}, images: ${imageUrls.length})`,
+      );
+    }
+    return content;
   } catch (err) {
     if (tracking) {
       trackUsage({
