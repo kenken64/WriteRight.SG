@@ -1,82 +1,81 @@
-// Import from lib path to avoid pdf-parse index.js which tries to read a test file at import time
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse: (buffer: Buffer) => Promise<{ numpages: number; text: string }> = require("pdf-parse/lib/pdf-parse");
 import { visionCompletion } from "../shared/openai-client";
 import { MODEL_VISION } from "../shared/model-config";
 import { OCRError } from "../shared/errors";
 import { calculateConfidence } from "./confidence";
 import type { OcrResult, OcrPage } from "../shared/types";
 
-const MIN_TEXT_LENGTH = 50;
-
 const OCR_SYSTEM_PROMPT = `You are an OCR engine specialised in reading handwritten English essays by Singaporean secondary school students.
-Extract ALL text exactly as written, preserving:
-- Paragraph breaks
-- Crossed-out words (mark as [crossed out: word])
-- Illegible words (mark as [illegible])
-- Spelling errors (preserve them, do not correct)
-Output the raw transcription only, no commentary.`;
+Convert the handwritten text to well-formatted Markdown. Preserve the document structure including:
+- Paragraph breaks (use double newlines)
+- Line breaks where the student intended them
+- Headings (use ## for headings)
+- Addresses, dates, salutations, and closings (preserve letter formatting)
+- Crossed-out words (mark as ~~crossed out: word~~)
+- Illegible words (mark as **[illegible]**)
+- Spelling errors (preserve them exactly, do not correct)
+Output only the Markdown-formatted transcription, no commentary.`;
 
 /**
  * Extract text from a PDF file.
- * For digital PDFs with selectable text, extracts directly.
- * For scanned/handwritten PDFs, falls back to OpenAI vision OCR.
+ * Converts each page to a PNG image, then sends each to OpenAI vision for OCR.
  */
 export async function extractTextFromPdf(fileUrl: string): Promise<OcrResult> {
+  // Step 1: Download the PDF
   const response = await fetch(fileUrl);
   if (!response.ok) {
     throw new OCRError(`Failed to download PDF: ${response.statusText}`, fileUrl);
   }
   const buffer = Buffer.from(await response.arrayBuffer());
 
-  let pdfData;
+  // Step 2: Convert each PDF page to a PNG image
+  // Dynamic import because pdf-to-img is ESM-only
+  const { pdf } = await import("pdf-to-img");
+  let pageImages: Buffer[];
   try {
-    pdfData = await pdfParse(buffer);
+    const document = await pdf(buffer, { scale: 2.0 });
+    pageImages = [];
+    for await (const image of document) {
+      pageImages.push(image);
+    }
   } catch (error) {
-    throw new OCRError(`Failed to parse PDF: ${(error as Error).message}`, fileUrl);
+    throw new OCRError(`Failed to convert PDF to images: ${(error as Error).message}`, fileUrl);
   }
 
-  const extractedText = pdfData.text?.trim() ?? "";
-
-  // If there's enough text, treat it as a digital PDF
-  if (extractedText.length >= MIN_TEXT_LENGTH) {
-    const pages: OcrPage[] = [
-      {
-        pageNumber: 1,
-        text: extractedText,
-        confidence: 1.0,
-        imageRef: fileUrl,
-      },
-    ];
-    return { text: extractedText, confidence: 1.0, pages };
+  if (!pageImages.length) {
+    throw new OCRError("PDF produced no pages", fileUrl);
   }
 
-  // Scanned/handwritten PDF — send to OpenAI vision for OCR
-  // Convert buffer to base64 data URL so visionCompletion sends it as "file" type (not "image_url")
-  const pdfBase64 = `data:application/pdf;base64,${buffer.toString("base64")}`;
-  try {
-    const text = await visionCompletion(
-      OCR_SYSTEM_PROMPT,
-      [pdfBase64],
-      `This is a scanned PDF with ${pdfData.numpages} page(s). Transcribe all handwritten text from every page. Output only the text.`,
-      { model: MODEL_VISION, maxTokens: 4000 },
-    );
+  console.log(`[pdf-extractor] Converted PDF to ${pageImages.length} page image(s)`);
 
-    const confidence = calculateConfidence(text);
-    const pages: OcrPage[] = [
-      {
-        pageNumber: 1,
-        text,
-        confidence,
-        imageRef: fileUrl,
-      },
-    ];
+  // Step 3: OCR each page image via OpenAI vision
+  const pages: OcrPage[] = [];
 
-    return { text, confidence, pages };
-  } catch (error) {
-    throw new OCRError(
-      `Failed to OCR scanned PDF: ${(error as Error).message}`,
-      fileUrl,
-    );
+  for (let i = 0; i < pageImages.length; i++) {
+    const pageNum = i + 1;
+    const imageBase64 = `data:image/png;base64,${pageImages[i].toString("base64")}`;
+
+    try {
+      const text = await visionCompletion(
+        OCR_SYSTEM_PROMPT,
+        [imageBase64],
+        `Transcribe page ${pageNum} of the handwritten essay. Convert to well-formatted Markdown.`,
+        { model: MODEL_VISION, maxTokens: 4000, tracking: { operation: "ocr" } },
+      );
+
+      const confidence = calculateConfidence(text);
+      pages.push({ pageNumber: pageNum, text, confidence, imageRef: fileUrl });
+      console.log(`[pdf-extractor] Page ${pageNum} OCR complete — ${text.length} chars, confidence: ${confidence.toFixed(2)}`);
+    } catch (error) {
+      throw new OCRError(
+        `Failed to OCR page ${pageNum}: ${(error as Error).message}`,
+        fileUrl,
+      );
+    }
   }
+
+  // Step 4: Combine results
+  const fullText = pages.map((p) => p.text).join("\n\n");
+  const avgConfidence = pages.reduce((sum, p) => sum + p.confidence, 0) / pages.length;
+
+  return { text: fullText, confidence: avgConfidence, pages };
 }

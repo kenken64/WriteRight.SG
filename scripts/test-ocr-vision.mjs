@@ -2,7 +2,8 @@
 
 /**
  * Test OCR using OpenAI Vision model on a local PDF/image file.
- * Zero dependencies — uses native fetch API only.
+ * PDFs are converted to per-page PNG images first (matching the app pipeline).
+ * Zero external dependencies for images; uses pdf-to-png-converter for PDFs.
  *
  * Usage:
  *   node scripts/test-ocr-vision.mjs <file-path>
@@ -55,35 +56,39 @@ Convert the handwritten text to well-formatted Markdown. Preserve the document s
 Output only the Markdown-formatted transcription, no commentary.`;
 
 // ── Helpers ────────────────────────────────────────────────────────
-const MIME_MAP = {
-  pdf: "application/pdf",
-  png: "image/png",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  gif: "image/gif",
-  webp: "image/webp",
-  bmp: "image/bmp",
-  tiff: "image/tiff",
-};
+async function ocrImageBase64(imageBase64DataUrl, pageLabel) {
+  const body = {
+    model: MODEL,
+    max_tokens: 4096,
+    messages: [
+      { role: "system", content: OCR_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: imageBase64DataUrl, detail: "high" } },
+          { type: "text", text: `Transcribe ${pageLabel}. Convert to well-formatted Markdown.` },
+        ],
+      },
+    ],
+  };
 
-function readFileAsBase64(filePath) {
-  const absPath = path.resolve(filePath);
-  if (!fs.existsSync(absPath)) {
-    console.error(`File not found: ${absPath}`);
-    process.exit(1);
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text();
+    throw new Error(`API error (${response.status}): ${errBody}`);
   }
 
-  const ext = path.extname(absPath).toLowerCase().slice(1);
-  const mime = MIME_MAP[ext];
-  if (!mime) {
-    console.error(`Unsupported file type: .${ext}`);
-    console.error(`Supported: ${Object.keys(MIME_MAP).join(", ")}`);
-    process.exit(1);
-  }
-
-  const data = fs.readFileSync(absPath);
-  const base64 = data.toString("base64");
-  return { dataUrl: `data:${mime};base64,${base64}`, mime, ext, size: data.length };
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content ?? "";
+  return { text, usage: data.usage };
 }
 
 // ── Main ───────────────────────────────────────────────────────────
@@ -95,104 +100,94 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`\nFile:  ${path.resolve(filePath)}`);
-
-  const { dataUrl, mime, ext, size } = readFileAsBase64(filePath);
-  console.log(`Size:  ${(size / 1024).toFixed(1)} KB`);
-  console.log(`Type:  ${mime}`);
-  console.log(`Model: ${MODEL}`);
-  console.log(`\nSending to OpenAI Vision API...\n`);
-
-  const isPdf = ext === "pdf";
-
-  // Build message content based on file type
-  const userContent = isPdf
-    ? [
-        {
-          type: "file",
-          file: {
-            filename: path.basename(filePath),
-            file_data: dataUrl,
-          },
-        },
-        {
-          type: "text",
-          text: "Transcribe all handwritten text from this PDF. Convert to well-formatted Markdown.",
-        },
-      ]
-    : [
-        {
-          type: "image_url",
-          image_url: { url: dataUrl, detail: "high" },
-        },
-        {
-          type: "text",
-          text: "Transcribe the handwritten text from this image. Convert to well-formatted Markdown.",
-        },
-      ];
-
-  const body = {
-    model: MODEL,
-    max_tokens: 4096,
-    messages: [
-      { role: "system", content: OCR_SYSTEM_PROMPT },
-      { role: "user", content: userContent },
-    ],
-  };
-
-  const start = Date.now();
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-
-    if (!response.ok) {
-      const errBody = await response.text();
-      console.error(`\nAPI error (${response.status}) after ${elapsed}s:`);
-      console.error(errBody);
-      process.exit(1);
-    }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content ?? "";
-    const usage = data.usage;
-
-    console.log("=".repeat(60));
-    console.log("OCR RESULT:");
-    console.log("=".repeat(60));
-    console.log(text);
-    console.log("=".repeat(60));
-    console.log(`\nDone in ${elapsed}s`);
-    console.log(
-      `Tokens - prompt: ${usage?.prompt_tokens}, completion: ${usage?.completion_tokens}, total: ${usage?.total_tokens}`,
-    );
-
-    if (!text.trim()) {
-      console.error("\nWARNING: Vision model returned empty text!");
-      process.exit(1);
-    }
-
-    // Write output to file alongside the input
-    const outPath = path.resolve(
-      path.dirname(path.resolve(filePath)),
-      `${path.basename(filePath, path.extname(filePath))}_ocr_output.md`,
-    );
-    fs.writeFileSync(outPath, text, "utf-8");
-    console.log(`Output saved to: ${outPath}`);
-  } catch (err) {
-    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-    console.error(`\nOCR failed after ${elapsed}s:`);
-    console.error(err.message);
+  const absPath = path.resolve(filePath);
+  if (!fs.existsSync(absPath)) {
+    console.error(`File not found: ${absPath}`);
     process.exit(1);
   }
+
+  const ext = path.extname(absPath).toLowerCase().slice(1);
+  const fileData = fs.readFileSync(absPath);
+  console.log(`\nFile:  ${absPath}`);
+  console.log(`Size:  ${(fileData.length / 1024).toFixed(1)} KB`);
+  console.log(`Model: ${MODEL}`);
+
+  const start = Date.now();
+  let fullText = "";
+  let totalTokens = { prompt: 0, completion: 0, total: 0 };
+
+  if (ext === "pdf") {
+    // Convert PDF pages to PNG images, then OCR each
+    const { pdf: pdfToImg } = await import(
+      path.resolve(scriptDir, "../packages/ai/node_modules/pdf-to-img/dist/index.js")
+    );
+
+    console.log(`\nConverting PDF pages to images...`);
+    const document = await pdfToImg(fileData, { scale: 2.0 });
+    const pngPages = [];
+    for await (const image of document) {
+      pngPages.push(image);
+    }
+    console.log(`Converted to ${pngPages.length} page image(s)`);
+    console.log(`Sending each page to OpenAI Vision API...\n`);
+
+    const pageTexts = [];
+    for (let i = 0; i < pngPages.length; i++) {
+      const pageNum = i + 1;
+      const imageBase64 = `data:image/png;base64,${pngPages[i].toString("base64")}`;
+      const pageStart = Date.now();
+      const { text, usage } = await ocrImageBase64(imageBase64, `page ${pageNum} of the handwritten essay`);
+      const pageElapsed = ((Date.now() - pageStart) / 1000).toFixed(1);
+
+      totalTokens.prompt += usage?.prompt_tokens ?? 0;
+      totalTokens.completion += usage?.completion_tokens ?? 0;
+      totalTokens.total += usage?.total_tokens ?? 0;
+
+      console.log(`Page ${pageNum}: ${text.length} chars, ${pageElapsed}s (${usage?.total_tokens ?? "?"} tokens)`);
+      pageTexts.push(text);
+    }
+    fullText = pageTexts.join("\n\n");
+  } else {
+    // Image file — send directly
+    const mimeMap = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp" };
+    const mime = mimeMap[ext];
+    if (!mime) {
+      console.error(`Unsupported file type: .${ext}`);
+      process.exit(1);
+    }
+
+    const imageBase64 = `data:${mime};base64,${fileData.toString("base64")}`;
+    console.log(`\nSending image to OpenAI Vision API...\n`);
+
+    const { text, usage } = await ocrImageBase64(imageBase64, "the handwritten text from this image");
+    fullText = text;
+    totalTokens.prompt = usage?.prompt_tokens ?? 0;
+    totalTokens.completion = usage?.completion_tokens ?? 0;
+    totalTokens.total = usage?.total_tokens ?? 0;
+  }
+
+  const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+
+  console.log("\n" + "=".repeat(60));
+  console.log("OCR RESULT:");
+  console.log("=".repeat(60));
+  console.log(fullText);
+  console.log("=".repeat(60));
+  console.log(`\nDone in ${elapsed}s`);
+  console.log(`Tokens - prompt: ${totalTokens.prompt}, completion: ${totalTokens.completion}, total: ${totalTokens.total}`);
+
+  if (!fullText.trim()) {
+    console.error("\nWARNING: Vision model returned empty text!");
+    process.exit(1);
+  }
+
+  // Write output to file alongside the input
+  const outPath = path.resolve(
+    path.dirname(absPath),
+    `${path.basename(absPath, path.extname(absPath))}_ocr_output.md`,
+  );
+  fs.writeFileSync(outPath, fullText, "utf-8");
+  console.log(`Output saved to: ${outPath}`);
 }
 
 main();

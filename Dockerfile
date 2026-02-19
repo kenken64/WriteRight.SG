@@ -8,6 +8,12 @@ RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 FROM base AS deps
 WORKDIR /app
 
+# canvas (node-canvas) pre-built binaries need these runtime libs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
+    libjpeg62-turbo libgif7 librsvg2-2 libpixman-1-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/ai/package.json ./packages/ai/package.json
@@ -39,6 +45,12 @@ RUN npx turbo run build --filter=@writeright/web
 # ── Runner ───────────────────────────────────────────────────────────
 FROM base AS runner
 WORKDIR /app
+
+# canvas (node-canvas) runtime libs for PDF-to-image conversion
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
+    libjpeg62-turbo libgif7 librsvg2-2 libpixman-1-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
 ENV PORT=3000
