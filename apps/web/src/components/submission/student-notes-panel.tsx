@@ -102,13 +102,24 @@ export function StudentNotesPanel({ submissionId }: StudentNotesPanelProps) {
             </span>
           )}
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-primary hover:bg-primary/5 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Add
-        </button>
+        <div className="flex items-center gap-2">
+          {highlights.length > 0 && (
+            <button
+              onClick={() => highlights.forEach((h) => handleDeleteHighlight(h.id))}
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Clear all highlights
+            </button>
+          )}
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-primary hover:bg-primary/5 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Add
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -248,13 +259,6 @@ export function StudentNotesPanel({ submissionId }: StudentNotesPanelProps) {
             <div className="h-4 w-4 rounded bg-yellow-200 border border-gray-300" />
             <span className="font-medium text-sm">Unlinked Highlights</span>
             <span className="text-xs text-muted-foreground">{unlinkedHighlights.length}</span>
-            <button
-              onClick={() => unlinkedHighlights.forEach((h) => handleDeleteHighlight(h.id))}
-              className="ml-auto flex items-center gap-1 rounded-md px-2 py-0.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
-            >
-              <Trash2 className="h-3 w-3" />
-              Clear all
-            </button>
           </div>
           <div className="space-y-1 pl-1">
             {unlinkedHighlights.map((h) => (
