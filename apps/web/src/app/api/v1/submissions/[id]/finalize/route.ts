@@ -121,13 +121,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
         console.log(`[finalize:bg] Copied ${ocrImageUrls.length} image(s) to ocr-images bucket`);
 
-        await admin.from("submissions").update({
+        const { error: ocrUpdateErr } = await admin.from("submissions").update({
           ocr_text: ocrResult.text,
           ocr_confidence: ocrResult.confidence,
           ocr_image_urls: ocrImageUrls,
           status: "ocr_complete",
           updated_at: new Date().toISOString(),
         }).eq("id", id);
+        if (ocrUpdateErr) {
+          console.error(`[finalize:bg] OCR update failed:`, ocrUpdateErr.message);
+          throw new Error(`Failed to save OCR text: ${ocrUpdateErr.message}`);
+        }
         console.log(`[finalize:bg] Status updated to 'ocr_complete'`);
       } else {
         console.log(`[finalize:bg] OCR text already present — skipping (length: ${ocrText.length})`);
@@ -171,7 +175,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         return;
       }
 
-      await admin.from("submissions").update({ status: "evaluated", updated_at: new Date().toISOString() }).eq("id", id);
+      // Persist ocr_text again in the final update as a safety net
+      await admin.from("submissions").update({
+        status: "evaluated",
+        ocr_text: ocrText,
+        updated_at: new Date().toISOString(),
+      }).eq("id", id);
       console.log(`[finalize:bg] Done — submission ${id} fully evaluated`);
 
       // Step 3: Check achievements (fire-and-forget)
