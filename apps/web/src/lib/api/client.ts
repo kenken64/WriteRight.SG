@@ -635,8 +635,21 @@ export function useGallery(filters?: { category?: string }, page = 1, pageSize =
 export function useGenerateGalleryPdf() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (submissionId: string) =>
-      apiFetch<{ url: string }>(`/gallery/${submissionId}/pdf`, { method: 'POST' }),
+    mutationFn: async (submissionId: string): Promise<Blob> => {
+      const csrfToken = readCsrfToken();
+      const headers: Record<string, string> = {};
+      if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
+      const res = await fetch(`${API_BASE}/gallery/${submissionId}/pdf`, {
+        method: 'POST',
+        headers,
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: 'Request failed' }));
+        throw new Error(error.error || error.message || `API error: ${res.status}`);
+      }
+      return res.blob();
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['gallery'] }),
   });
 }

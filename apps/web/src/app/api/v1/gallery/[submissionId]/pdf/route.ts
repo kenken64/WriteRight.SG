@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createAdminSupabaseClient } from "@/lib/supabase/server";
 import { PDFDocument } from "pdf-lib";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
+import path from "node:path";
 
 const A4_WIDTH = 595.28;
 const A4_HEIGHT = 841.89;
+
+const PDF_STORAGE_DIR = process.env.PDF_STORAGE_DIR || "/data/gallery-pdfs";
 
 function detectImageFormat(bytes: Uint8Array): "jpeg" | "png" | null {
   // JPEG: starts with FF D8
@@ -11,14 +15,6 @@ function detectImageFormat(bytes: Uint8Array): "jpeg" | "png" | null {
   // PNG: starts with 89 50 4E 47
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
   return null;
-}
-
-async function getSignedUrl(admin: ReturnType<typeof createAdminSupabaseClient>, path: string) {
-  const { data, error } = await admin.storage
-    .from("gallery-pdfs")
-    .createSignedUrl(path, 3600); // 1 hour
-  if (error) throw new Error(`Failed to create signed URL: ${error.message}`);
-  return data.signedUrl;
 }
 
 export async function GET(
@@ -44,9 +40,20 @@ export async function GET(
     return NextResponse.json({ error: "No PDF generated yet" }, { status: 404 });
   }
 
-  const admin = createAdminSupabaseClient();
-  const url = await getSignedUrl(admin, submission.gallery_pdf_ref);
-  return NextResponse.json({ url });
+  // Read PDF from Railway volume
+  const filePath = path.join(PDF_STORAGE_DIR, submission.gallery_pdf_ref);
+  try {
+    const pdfBuffer = await readFile(filePath);
+    return new NextResponse(pdfBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="essay-${submissionId}.pdf"`,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "PDF file not found on disk" }, { status: 404 });
+  }
 }
 
 export async function POST(
@@ -73,13 +80,24 @@ export async function POST(
     return NextResponse.json({ error: "No images to convert" }, { status: 400 });
   }
 
-  const admin = createAdminSupabaseClient();
-
-  // If already generated, return existing signed URL
+  // If already generated, read from disk and return
   if (submission.gallery_pdf_ref) {
-    const url = await getSignedUrl(admin, submission.gallery_pdf_ref);
-    return NextResponse.json({ url });
+    const filePath = path.join(PDF_STORAGE_DIR, submission.gallery_pdf_ref);
+    try {
+      const pdfBuffer = await readFile(filePath);
+      return new NextResponse(pdfBuffer, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="essay-${submissionId}.pdf"`,
+        },
+      });
+    } catch {
+      // File missing on disk — regenerate below
+    }
   }
+
+  const admin = createAdminSupabaseClient();
 
   // Download images from submissions bucket
   const pdfDoc = await PDFDocument.create();
@@ -140,18 +158,11 @@ export async function POST(
 
   const pdfBytes = await pdfDoc.save();
   const storagePath = `${submissionId}/essay.pdf`;
+  const filePath = path.join(PDF_STORAGE_DIR, storagePath);
 
-  // Upload PDF to gallery-pdfs bucket
-  const { error: uploadError } = await admin.storage
-    .from("gallery-pdfs")
-    .upload(storagePath, pdfBytes, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-  if (uploadError) {
-    return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
-  }
+  // Write PDF to Railway volume
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, pdfBytes);
 
   // Update submission with PDF reference
   const { error: updateError } = await admin
@@ -163,6 +174,11 @@ export async function POST(
     return NextResponse.json({ error: `Failed to update submission: ${updateError.message}` }, { status: 500 });
   }
 
-  const url = await getSignedUrl(admin, storagePath);
-  return NextResponse.json({ url });
+  return new NextResponse(pdfBytes, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="essay-${submissionId}.pdf"`,
+    },
+  });
 }

@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
       { count: "exact" }
     )
     .in("status", ["evaluated", "ocr_complete"])
+    .not("image_refs", "is", null)
+    .neq("image_refs", "{}")
     .order("created_at", { ascending: false });
 
   if (assignmentFilter) {

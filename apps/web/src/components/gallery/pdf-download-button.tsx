@@ -10,6 +10,17 @@ interface PdfDownloadButtonProps {
   galleryPdfRef: string | null;
 }
 
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function PdfDownloadButton({ submissionId, imageRefs, galleryPdfRef }: PdfDownloadButtonProps) {
   const [downloading, setDownloading] = useState(false);
   const generatePdf = useGenerateGalleryPdf();
@@ -20,21 +31,24 @@ export function PdfDownloadButton({ submissionId, imageRefs, galleryPdfRef }: Pd
     e.preventDefault();
     e.stopPropagation();
 
+    const filename = `essay-${submissionId}.pdf`;
+
     if (galleryPdfRef) {
-      // PDF already exists — fetch signed URL via GET
+      // PDF already exists — fetch binary via GET
       setDownloading(true);
       try {
         const res = await fetch(`/api/v1/gallery/${submissionId}/pdf`);
-        const data = await res.json();
-        if (data.url) window.open(data.url, '_blank');
+        if (!res.ok) return;
+        const blob = await res.blob();
+        triggerBlobDownload(blob, filename);
       } finally {
         setDownloading(false);
       }
     } else {
-      // Generate PDF via POST
+      // Generate PDF via POST — response is now a PDF blob
       generatePdf.mutate(submissionId, {
-        onSuccess: (data) => {
-          if (data.url) window.open(data.url, '_blank');
+        onSuccess: (blob) => {
+          triggerBlobDownload(blob, filename);
         },
       });
     }
