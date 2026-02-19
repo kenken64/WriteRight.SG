@@ -21,11 +21,22 @@ function triggerBlobDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+const NON_IMAGE_EXTS = new Set(['pdf', 'doc', 'docx']);
+
+function hasOnlyNonImageFiles(refs: string[]): boolean {
+  return refs.every((ref) => {
+    const ext = ref.split('.').pop()?.toLowerCase() ?? '';
+    return NON_IMAGE_EXTS.has(ext);
+  });
+}
+
 export function PdfDownloadButton({ submissionId, imageRefs, galleryPdfRef }: PdfDownloadButtonProps) {
   const [downloading, setDownloading] = useState(false);
   const generatePdf = useGenerateGalleryPdf();
 
+  // Hide if no images, or if all files are already PDFs/docs (no point generating a PDF)
   if (!imageRefs || imageRefs.length === 0) return null;
+  if (!galleryPdfRef && hasOnlyNonImageFiles(imageRefs)) return null;
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();

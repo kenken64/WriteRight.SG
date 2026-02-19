@@ -9,11 +9,13 @@ const A4_HEIGHT = 841.89;
 
 const PDF_STORAGE_DIR = process.env.PDF_STORAGE_DIR || "/data/gallery-pdfs";
 
-function detectImageFormat(bytes: Uint8Array): "jpeg" | "png" | null {
+function detectFileFormat(bytes: Uint8Array): "jpeg" | "png" | "pdf" | null {
   // JPEG: starts with FF D8
   if (bytes[0] === 0xff && bytes[1] === 0xd8) return "jpeg";
   // PNG: starts with 89 50 4E 47
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
+  // PDF: starts with %PDF
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return "pdf";
   return null;
 }
 
@@ -99,21 +101,53 @@ export async function POST(
 
   const admin = createAdminSupabaseClient();
 
-  // Download images from submissions bucket
+  // Download images — try submissions bucket first, fall back to ocr-images
   const pdfDoc = await PDFDocument.create();
+  const errors: string[] = [];
 
   for (const ref of submission.image_refs) {
-    const { data: fileData, error: dlError } = await admin.storage
+    // Try primary bucket
+    let fileData: Blob | null = null;
+
+    const { data: primaryData, error: primaryError } = await admin.storage
       .from("submissions")
       .download(ref);
 
-    if (dlError || !fileData) {
-      console.error(`Failed to download image ${ref}:`, dlError);
-      continue;
+    if (primaryError || !primaryData) {
+      // Fallback: try ocr-images bucket with reconstructed path
+      const ocrPath = `${submissionId}/${ref.split("/").pop()}`;
+      const { data: fallbackData, error: fallbackError } = await admin.storage
+        .from("ocr-images")
+        .download(ocrPath);
+
+      if (fallbackError || !fallbackData) {
+        const msg = `Failed to download ${ref} from both buckets: submissions(${primaryError?.message}), ocr-images(${fallbackError?.message})`;
+        console.error(`[gallery-pdf] ${msg}`);
+        errors.push(msg);
+        continue;
+      }
+      fileData = fallbackData;
+    } else {
+      fileData = primaryData;
     }
 
     const bytes = new Uint8Array(await fileData.arrayBuffer());
-    const format = detectImageFormat(bytes);
+    const format = detectFileFormat(bytes);
+
+    if (format === "pdf") {
+      // Merge pages from existing PDF
+      try {
+        const srcPdf = await PDFDocument.load(bytes);
+        const pageIndices = srcPdf.getPageIndices();
+        const copiedPages = await pdfDoc.copyPages(srcPdf, pageIndices);
+        for (const copiedPage of copiedPages) {
+          pdfDoc.addPage(copiedPage);
+        }
+      } catch (e) {
+        console.warn(`Failed to merge PDF ${ref}:`, e);
+      }
+      continue;
+    }
 
     let image;
     if (format === "jpeg") {
@@ -121,8 +155,7 @@ export async function POST(
     } else if (format === "png") {
       image = await pdfDoc.embedPng(bytes);
     } else {
-      // Skip unsupported formats
-      console.warn(`Skipping unsupported image format for ${ref}`);
+      console.warn(`Skipping unsupported file format for ${ref}`);
       continue;
     }
 
@@ -134,11 +167,9 @@ export async function POST(
     let pageHeight: number;
 
     if (imgAspect > a4Aspect) {
-      // Image is wider relative to A4
       pageWidth = A4_WIDTH;
       pageHeight = A4_WIDTH / imgAspect;
     } else {
-      // Image is taller relative to A4
       pageHeight = A4_HEIGHT;
       pageWidth = A4_HEIGHT * imgAspect;
     }
@@ -153,7 +184,11 @@ export async function POST(
   }
 
   if (pdfDoc.getPageCount() === 0) {
-    return NextResponse.json({ error: "Could not process any images" }, { status: 400 });
+    console.error(`[gallery-pdf] No pages generated for ${submissionId}. image_refs: ${JSON.stringify(submission.image_refs)}. Errors: ${errors.join("; ")}`);
+    return NextResponse.json(
+      { error: "Could not process any images", details: errors },
+      { status: 400 },
+    );
   }
 
   const pdfBytes = await pdfDoc.save();
