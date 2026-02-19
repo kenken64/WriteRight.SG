@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { parentOnboardSchema } from '@/lib/validators/schemas';
 import { ensureUserRow, markOnboarded } from '@/lib/supabase/ensure-user-row';
+import { generateCode } from '@/lib/utils/generate-code';
 import { z } from 'zod';
 
 export async function POST(req: NextRequest) {
@@ -16,13 +17,64 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { inviteCode, parentType } = parentOnboardSchema.parse(body);
+    const { inviteCode, parentType, className } = parentOnboardSchema.parse(body);
 
     // Ensure parent's users row exists first (needed for FK on parent_student_links)
     const ensureResult = await ensureUserRow(supabase, user);
     if (ensureResult.error) {
       console.error('[onboard/parent] ensureUserRow error:', ensureResult.error);
       return NextResponse.json({ error: ensureResult.error }, { status: 500 });
+    }
+
+    const isTeacher = parentType === 'school_teacher' || parentType === 'tuition_teacher';
+
+    if (isTeacher) {
+      // Teacher flow: generate a class code instead of linking via invite code
+      let code = '';
+      let codeInserted = false;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        code = generateCode();
+        const { error: codeError } = await supabase
+          .from('class_codes')
+          .insert({
+            teacher_id: user.id,
+            code,
+            class_name: className || null,
+            is_active: true,
+          });
+
+        if (!codeError) {
+          codeInserted = true;
+          break;
+        }
+        if (!codeError.message.includes('unique') && !codeError.message.includes('duplicate')) {
+          return NextResponse.json({ error: codeError.message }, { status: 500 });
+        }
+      }
+
+      if (!codeInserted) {
+        return NextResponse.json({ error: 'Failed to generate unique class code' }, { status: 500 });
+      }
+
+      // Save parent type
+      await supabase
+        .from('users')
+        .update({ parent_type: parentType })
+        .eq('id', user.id);
+
+      // Mark user as onboarded
+      const onboardResult = await markOnboarded(supabase, user);
+      if (onboardResult.error) {
+        console.error('[onboard/parent] markOnboarded error:', onboardResult.error);
+        return NextResponse.json({ error: onboardResult.error }, { status: 500 });
+      }
+
+      return NextResponse.json({ classCode: code, className: className || null });
+    }
+
+    // Parent flow: link via invite code (existing behavior)
+    if (!inviteCode) {
+      return NextResponse.json({ error: 'Invite code is required' }, { status: 422 });
     }
 
     // Look up the invite code

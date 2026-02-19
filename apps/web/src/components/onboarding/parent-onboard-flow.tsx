@@ -4,9 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParentOnboard, useParentSkipOnboard } from '@/lib/api/client';
 import type { ParentType } from '@/lib/validators/schemas';
-import { Users, Check, ArrowRight, Link2 } from 'lucide-react';
+import { Users, Check, ArrowRight, Link2, Copy, GraduationCap } from 'lucide-react';
 
-type Step = 'welcome' | 'enter-code' | 'success';
+type Step = 'welcome' | 'enter-code' | 'class-code' | 'success';
 
 const CODE_LENGTH = 6;
 
@@ -17,15 +17,20 @@ interface Props {
 export function ParentOnboardFlow({ displayName }: Props) {
   const [step, setStep] = useState<Step>('welcome');
   const [parentType, setParentType] = useState<ParentType>('parent');
+  const [className, setClassName] = useState('');
   const [codeDigits, setCodeDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [copied, setCopied] = useState(false);
   const [confetti, setConfetti] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const linkChild = useParentOnboard();
   const skipOnboard = useParentSkipOnboard();
 
+  const isTeacher = parentType === 'school_teacher' || parentType === 'tuition_teacher';
+
   useEffect(() => {
-    if (step === 'success') {
+    if (step === 'success' || step === 'class-code') {
       setConfetti(true);
       const timer = setTimeout(() => setConfetti(false), 3000);
       return () => clearTimeout(timer);
@@ -48,6 +53,25 @@ export function ParentOnboardFlow({ displayName }: Props) {
       { onSuccess: () => setStep('success') },
     );
   }, [linkChild, parentType]);
+
+  const handleGenerateClassCode = () => {
+    linkChild.mutate(
+      { parentType, className: className || undefined },
+      {
+        onSuccess: (data) => {
+          setGeneratedCode(data.classCode ?? '');
+          setStep('class-code');
+        },
+      },
+    );
+  };
+
+  const handleCopyCode = async () => {
+    if (!generatedCode) return;
+    await navigator.clipboard.writeText(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleInputChange = (index: number, value: string) => {
     // Only allow valid characters
@@ -105,6 +129,10 @@ export function ParentOnboardFlow({ displayName }: Props) {
     });
   };
 
+  const progressSteps: Step[] = isTeacher
+    ? ['welcome', 'class-code', 'success']
+    : ['welcome', 'enter-code', 'success'];
+
   return (
     <div className="relative w-full max-w-lg">
       {/* Confetti overlay */}
@@ -116,11 +144,11 @@ export function ParentOnboardFlow({ displayName }: Props) {
 
       {/* Progress dots */}
       <div className="mb-8 flex items-center justify-center gap-2">
-        {(['welcome', 'enter-code', 'success'] as Step[]).map((s, i) => (
+        {progressSteps.map((s, i) => (
           <div
             key={s}
             className={`h-2.5 rounded-full transition-all duration-300 ${
-              s === step ? 'w-8 bg-primary' : i < ['welcome', 'enter-code', 'success'].indexOf(step) ? 'w-2.5 bg-primary/60' : 'w-2.5 bg-gray-200'
+              s === step ? 'w-8 bg-primary' : i < progressSteps.indexOf(step) ? 'w-2.5 bg-primary/60' : 'w-2.5 bg-gray-200'
             }`}
           />
         ))}
@@ -135,10 +163,14 @@ export function ParentOnboardFlow({ displayName }: Props) {
             </div>
             <h2 className="text-2xl font-bold">Welcome, {displayName}!</h2>
             <p className="mt-3 text-muted-foreground">
-              As a parent, you can monitor your child&apos;s essay progress, set rewards, and track their improvement over time.
+              {isTeacher
+                ? 'As a teacher, you can create assignments for your students, track their essay progress, and provide AI-powered feedback.'
+                : "As a parent, you can monitor your child's essay progress, set rewards, and track their improvement over time."}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              To get started, tell us your role and link your account to your child&apos;s using their invite code.
+              {isTeacher
+                ? 'To get started, tell us your role and generate a class code for your students to join.'
+                : "To get started, tell us your role and link your account to your child's using their invite code."}
             </p>
 
             <div className="mt-6 space-y-2">
@@ -171,13 +203,45 @@ export function ParentOnboardFlow({ displayName }: Props) {
               ))}
             </div>
 
-            <button
-              onClick={() => setStep('enter-code')}
-              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-            >
-              <Link2 className="h-4 w-4" />
-              Link My Child&apos;s Account
-            </button>
+            {/* Class name input for teachers */}
+            {isTeacher && (
+              <div className="mt-4 text-left">
+                <label className="block text-sm font-medium text-foreground">
+                  Class name <span className="text-muted-foreground">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={className}
+                  onChange={(e) => setClassName(e.target.value)}
+                  placeholder="e.g. 3A English"
+                  maxLength={100}
+                  className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+
+            {isTeacher ? (
+              <button
+                onClick={handleGenerateClassCode}
+                disabled={linkChild.isPending}
+                className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <GraduationCap className="h-4 w-4" />
+                {linkChild.isPending ? 'Generating...' : 'Generate My Class Code'}
+              </button>
+            ) : (
+              <button
+                onClick={() => setStep('enter-code')}
+                className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+              >
+                <Link2 className="h-4 w-4" />
+                Link My Child&apos;s Account
+              </button>
+            )}
+
+            {linkChild.isError && (
+              <p className="mt-3 text-sm text-destructive">{linkChild.error.message}</p>
+            )}
 
             <div className="mt-4">
               <button
@@ -245,6 +309,45 @@ export function ParentOnboardFlow({ displayName }: Props) {
                 Verify & Link
               </button>
             </div>
+          </div>
+        )}
+
+        {step === 'class-code' && (
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <GraduationCap className="h-8 w-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold">Your class code is ready!</h2>
+            <p className="mt-3 text-muted-foreground">
+              Share this code with your students. They can enter it in their Settings page to join your class.
+            </p>
+
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <div className="rounded-lg border bg-gray-50 px-6 py-4">
+                <span className="font-mono text-3xl font-bold tracking-[0.3em] text-primary">
+                  {generatedCode}
+                </span>
+              </div>
+              <button
+                onClick={handleCopyCode}
+                className="rounded-md border p-3 text-muted-foreground hover:bg-gray-50 hover:text-foreground transition-colors"
+                title="Copy code"
+              >
+                {copied ? <Check className="h-5 w-5 text-green-600" /> : <Copy className="h-5 w-5" />}
+              </button>
+            </div>
+            {copied && <p className="mt-2 text-xs text-green-600">Copied to clipboard!</p>}
+
+            <button
+              onClick={() => {
+                router.push('/assignments');
+                router.refresh();
+              }}
+              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+            >
+              Go to Dashboard
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         )}
 

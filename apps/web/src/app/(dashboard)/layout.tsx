@@ -30,6 +30,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const role = (user.user_metadata?.role as 'parent' | 'student') ?? 'parent';
 
+  // Fetch parent_type for parent users
+  let parentType: string | null = null;
+  if (role === 'parent') {
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('parent_type')
+      .eq('id', user.id)
+      .single();
+    parentType = userRow?.parent_type ?? null;
+  }
+
   // Fetch linked family members
   let linkedMembers: { name: string; detail: string }[] = [];
 
@@ -84,7 +95,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SidebarProvider>
       <div className="flex min-h-screen">
-        <DashboardSidebar role={role} userEmail={user.email ?? ''} linkedMembers={linkedMembers}>
+        <DashboardSidebar role={role} userEmail={user.email ?? ''} linkedMembers={linkedMembers} parentType={parentType}>
           <div className="px-4 py-4 pb-24 md:px-8 md:py-6 md:pb-6">
             {children}
           </div>

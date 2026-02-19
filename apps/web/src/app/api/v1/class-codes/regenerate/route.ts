@@ -8,26 +8,15 @@ export async function POST() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const role = user.user_metadata?.role;
-  if (role !== 'student') {
-    return NextResponse.json({ error: 'Only students can regenerate invite codes' }, { status: 403 });
-  }
-
-  // Get student profile
-  const { data: profile } = await supabase
-    .from('student_profiles')
-    .select('id')
-    .eq('user_id', user.id)
-    .single();
-
-  if (!profile) {
-    return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
+  if (role !== 'parent') {
+    return NextResponse.json({ error: 'Only teachers can regenerate class codes' }, { status: 403 });
   }
 
   // Deactivate current active code
   await supabase
-    .from('invite_codes')
+    .from('class_codes')
     .update({ is_active: false })
-    .eq('student_id', profile.id)
+    .eq('teacher_id', user.id)
     .eq('is_active', true);
 
   // Generate new code with retry on collision
@@ -36,10 +25,10 @@ export async function POST() {
   for (let attempt = 0; attempt < 10; attempt++) {
     code = generateCode();
     const { error } = await supabase
-      .from('invite_codes')
+      .from('class_codes')
       .insert({
+        teacher_id: user.id,
         code,
-        student_id: profile.id,
         is_active: true,
       });
 
@@ -53,8 +42,8 @@ export async function POST() {
   }
 
   if (!inserted) {
-    return NextResponse.json({ error: 'Failed to generate unique invite code' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate unique class code' }, { status: 500 });
   }
 
-  return NextResponse.json({ inviteCode: code });
+  return NextResponse.json({ classCode: code });
 }

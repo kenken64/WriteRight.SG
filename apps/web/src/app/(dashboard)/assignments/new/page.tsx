@@ -2,19 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCreateAssignment, useTopic } from '@/lib/api/client';
+import { useCreateAssignment, useTopic, useLinkedStudents } from '@/lib/api/client';
 import { newAssignmentFormSchema } from '@/lib/validators/schemas';
 
 export default function NewAssignmentPage() {
   const searchParams = useSearchParams();
   const topicId = searchParams.get('topicId');
   const { data: topic } = useTopic(topicId);
+  const { data: linkedData } = useLinkedStudents();
+  const students = linkedData?.students ?? [];
 
   const [essayType, setEssayType] = useState<'situational' | 'continuous'>('situational');
   const [essaySubType, setEssaySubType] = useState('letter');
   const [prompt, setPrompt] = useState('');
   const [wordCountMin, setWordCountMin] = useState(250);
   const [wordCountMax, setWordCountMax] = useState(500);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [prefilled, setPrefilled] = useState(false);
 
   useEffect(() => {
@@ -26,6 +29,13 @@ export default function NewAssignmentPage() {
       setPrefilled(true);
     }
   }, [topic, prefilled]);
+
+  // Auto-select when there's exactly one student
+  useEffect(() => {
+    if (students.length === 1 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id);
+    }
+  }, [students, selectedStudentId]);
 
   const handleWordCount = (value: string, setter: (v: number) => void) => {
     const num = parseInt(value, 10);
@@ -43,6 +53,12 @@ export default function NewAssignmentPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
+
+    // Validate student selection for multi-student parents/teachers
+    if (students.length > 1 && !selectedStudentId) {
+      setFieldErrors({ studentId: 'Please select a student' });
+      return;
+    }
 
     const result = newAssignmentFormSchema.safeParse({
       essayType,
@@ -70,6 +86,7 @@ export default function NewAssignmentPage() {
         prompt: result.data.prompt,
         word_count_min: result.data.wordCountMin,
         word_count_max: result.data.wordCountMax,
+        ...(selectedStudentId ? { student_id: selectedStudentId } : {}),
         ...(topicId ? { topic_id: topicId } : {}),
         ...(Array.isArray(guidingPoints) && guidingPoints.length > 0
           ? { guiding_points: guidingPoints }
@@ -91,6 +108,28 @@ export default function NewAssignmentPage() {
         </div>
       )}
       <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-6">
+        {/* Student picker — shown only for parents/teachers with multiple students */}
+        {students.length > 1 && (
+          <div>
+            <label className="block text-sm font-medium">Assign to Student</label>
+            <select
+              value={selectedStudentId}
+              onChange={(e) => setSelectedStudentId(e.target.value)}
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            >
+              <option value="">Select a student...</option>
+              {students.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.displayName} ({s.level.replace('sec', 'Sec ')})
+                </option>
+              ))}
+            </select>
+            {fieldErrors.studentId && (
+              <p className="mt-1 text-xs text-destructive">{fieldErrors.studentId}</p>
+            )}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium">Essay Type</label>
           <div className="mt-2 flex gap-3">

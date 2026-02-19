@@ -2,17 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { studentOnboardSchema } from '@/lib/validators/schemas';
 import { ensureUserRow, markOnboarded } from '@/lib/supabase/ensure-user-row';
+import { generateCode } from '@/lib/utils/generate-code';
 import { z } from 'zod';
-
-const INVITE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-function generateCode(): string {
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += INVITE_CHARS[Math.floor(Math.random() * INVITE_CHARS.length)];
-  }
-  return code;
-}
 
 export async function POST(req: NextRequest) {
   try {

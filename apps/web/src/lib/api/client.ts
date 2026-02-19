@@ -323,7 +323,7 @@ export function useStudentOnboard() {
 export function useParentOnboard() {
   return useMutation({
     mutationFn: (data: ParentOnboardInput) =>
-      apiFetch<{ linked: boolean; studentId: string }>('/onboard/parent', {
+      apiFetch<{ linked?: boolean; studentId?: string; classCode?: string; className?: string | null }>('/onboard/parent', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -350,5 +350,46 @@ export function useRegenerateInviteCode() {
     mutationFn: () =>
       apiFetch<{ inviteCode: string }>('/invite-code/regenerate', { method: 'POST' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['invite-code'] }),
+  });
+}
+
+// ─── Class Codes (Teachers) ───
+export function useClassCode() {
+  return useQuery({
+    queryKey: ['class-code'],
+    queryFn: () =>
+      apiFetch<{ classCode: { id: string; code: string; class_name: string | null; created_at: string } | null; studentCount: number }>('/class-codes'),
+  });
+}
+
+export function useRegenerateClassCode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiFetch<{ classCode: string }>('/class-codes/regenerate', { method: 'POST' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['class-code'] }),
+  });
+}
+
+export function useJoinClass() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { classCode: string }) =>
+      apiFetch<{ linked: boolean; teacherName: string }>('/class-codes/join', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+    },
+  });
+}
+
+// ─── Linked Students (Parents/Teachers) ───
+export function useLinkedStudents() {
+  return useQuery({
+    queryKey: ['linked-students'],
+    queryFn: () =>
+      apiFetch<{ students: { id: string; displayName: string; level: string }[] }>('/linked-students'),
   });
 }

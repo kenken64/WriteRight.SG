@@ -286,10 +286,22 @@ export const parentTypeSchema = z.enum(['parent', 'school_teacher', 'tuition_tea
 export type ParentType = z.infer<typeof parentTypeSchema>;
 
 export const parentOnboardSchema = z.object({
-  inviteCode: z.string().length(6).toUpperCase(),
+  inviteCode: z.string().length(6).toUpperCase().optional(),
   parentType: parentTypeSchema.optional().default('parent'),
-});
+  className: z.string().max(100).optional(),
+}).refine(
+  (data) => {
+    // inviteCode is required for regular parents, optional for teachers
+    if (data.parentType === 'parent') return !!data.inviteCode;
+    return true;
+  },
+  { message: 'Invite code is required for parents', path: ['inviteCode'] },
+);
 export type ParentOnboardInput = z.infer<typeof parentOnboardSchema>;
+
+export const joinClassSchema = z.object({
+  classCode: z.string().length(6).toUpperCase(),
+});
 
 export const inviteCodeSchema = z.object({
   id: z.string().uuid(),

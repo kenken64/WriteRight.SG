@@ -13,9 +13,12 @@ export default async function AssignmentsPage({
   const { from, to } = toSupabaseRange({ page, pageSize });
 
   const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
+
   const { data: assignments, count } = await supabase
     .from('assignments')
-    .select('*, topic:topics(*)', { count: 'exact' })
+    .select('*, topic:topics(*), student:student_profiles(display_name)', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -48,9 +51,16 @@ export default async function AssignmentsPage({
                     {a.essay_type} · {a.essay_sub_type ?? 'General'} · {a.word_count_min}-{a.word_count_max} words
                   </p>
                 </div>
-                <span className="rounded-full bg-muted px-2 py-1 text-xs capitalize">
-                  {a.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  {role === 'parent' && a.student?.display_name && (
+                    <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                      {a.student.display_name}
+                    </span>
+                  )}
+                  <span className="rounded-full bg-muted px-2 py-1 text-xs capitalize">
+                    {a.status}
+                  </span>
+                </div>
               </div>
             </Link>
           ))

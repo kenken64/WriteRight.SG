@@ -28,14 +28,21 @@ interface LinkedMember {
   detail: string;
 }
 
+const PARENT_TYPE_LABELS: Record<string, string> = {
+  parent: 'Parent',
+  school_teacher: 'School Teacher',
+  tuition_teacher: 'Tuition Teacher',
+};
+
 interface SidebarProps {
   role: UserRole;
   userEmail: string;
   linkedMembers?: LinkedMember[];
+  parentType?: string | null;
   children?: React.ReactNode;
 }
 
-export function DashboardSidebar({ role, userEmail, linkedMembers = [], children }: SidebarProps) {
+export function DashboardSidebar({ role, userEmail, linkedMembers = [], parentType, children }: SidebarProps) {
   const pathname = usePathname();
   const navItems = getNavForRole(role);
   const { mobileOpen, setMobileOpen } = useSidebar();
@@ -74,13 +81,15 @@ export function DashboardSidebar({ role, userEmail, linkedMembers = [], children
         </div>
         <p className="mt-1 truncate text-xs text-muted-foreground">{userEmail}</p>
         <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs capitalize text-primary">
-          {role}
+          {role === 'parent' && parentType ? (PARENT_TYPE_LABELS[parentType] ?? 'Parent') : role}
         </span>
         {linkedMembers.length > 0 && (
           <div className="mt-3 border-t pt-3">
             <p className="text-xs font-medium text-muted-foreground">
               {linkedMembers.length} {role === 'parent'
-                ? linkedMembers.length === 1 ? 'child linked' : 'children linked'
+                ? (parentType === 'school_teacher' || parentType === 'tuition_teacher')
+                  ? linkedMembers.length === 1 ? 'student linked' : 'students linked'
+                  : linkedMembers.length === 1 ? 'child linked' : 'children linked'
                 : linkedMembers.length === 1 ? 'guardian linked' : 'guardians linked'}
             </p>
             <div className="mt-1.5 space-y-1">
@@ -153,7 +162,7 @@ export function DashboardSidebar({ role, userEmail, linkedMembers = [], children
             WriteRight SG
           </h1>
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs capitalize text-primary">
-            {role}
+            {role === 'parent' && parentType ? (PARENT_TYPE_LABELS[parentType] ?? 'Parent') : role}
           </span>
         </div>
 

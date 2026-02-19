@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { InviteCodeCard } from '@/components/dashboard/invite-code-card';
+import { ClassCodeCard } from '@/components/dashboard/class-code-card';
+import { JoinClassCard } from '@/components/dashboard/join-class-card';
 import { readCsrfToken } from '@/lib/hooks/use-csrf-token';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -24,6 +26,7 @@ interface Settings {
   notificationPrefs: { email: boolean; push: boolean };
   role: string;
   parentType?: string;
+  classCode?: { id: string; code: string; class_name: string | null; created_at: string } | null;
   linkedChildren?: LinkedChild[];
   linkedGuardians?: LinkedGuardian[];
 }
@@ -147,8 +150,16 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Class Code (teachers only) */}
+        {settings?.role === 'parent' && (settings?.parentType === 'school_teacher' || settings?.parentType === 'tuition_teacher') && (
+          <ClassCodeCard />
+        )}
+
         {/* Invite Code (students only) */}
         {settings?.role === 'student' && <InviteCodeCard />}
+
+        {/* Join a Class (students only) */}
+        {settings?.role === 'student' && <JoinClassCard />}
 
         {/* My Guardians (students only) */}
         {settings?.role === 'student' && settings.linkedGuardians && settings.linkedGuardians.length > 0 && (
@@ -172,10 +183,14 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {/* Linked Children (parents only) */}
+        {/* Linked Children / Students (parents/teachers) */}
         {settings?.role === 'parent' && settings.linkedChildren && settings.linkedChildren.length > 0 && (
           <section className="rounded-lg border bg-white p-6">
-            <h2 className="text-lg font-semibold">Linked Children</h2>
+            <h2 className="text-lg font-semibold">
+              {settings.parentType === 'school_teacher' || settings.parentType === 'tuition_teacher'
+                ? 'Linked Students'
+                : 'Linked Children'}
+            </h2>
             <div className="mt-4 space-y-3">
               {settings.linkedChildren.map((child, i) => (
                 <div key={i} className="flex items-center justify-between rounded-md border px-4 py-3">

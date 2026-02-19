@@ -35,6 +35,18 @@ export async function GET() {
   if (role === 'parent') {
     response.parentType = profile?.parent_type ?? 'parent';
 
+    // If teacher, fetch active class code
+    const pt = profile?.parent_type;
+    if (pt === 'school_teacher' || pt === 'tuition_teacher') {
+      const { data: classCode } = await supabase
+        .from('class_codes')
+        .select('id, code, class_name, created_at')
+        .eq('teacher_id', user.id)
+        .eq('is_active', true)
+        .single();
+      response.classCode = classCode ?? null;
+    }
+
     // Fetch linked children
     const { data: links } = await supabase
       .from('parent_student_links')

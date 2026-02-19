@@ -14,9 +14,12 @@ export default async function SubmissionsPage({
   const { from, to } = toSupabaseRange({ page, pageSize });
 
   const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
+
   const { data: submissions, count } = await supabase
     .from('submissions')
-    .select('*, assignment:assignments(prompt, essay_type)', { count: 'exact' })
+    .select('*, assignment:assignments(prompt, essay_type, student_id, student:student_profiles(display_name))', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -44,9 +47,16 @@ export default async function SubmissionsPage({
                       {sub.assignment?.essay_type} · {formatRelativeDate(sub.created_at)}
                     </p>
                   </div>
-                  <span className={`rounded-full px-2 py-1 text-xs ${status.color}`}>
-                    {status.label}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {role === 'parent' && sub.assignment?.student?.display_name && (
+                      <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                        {sub.assignment.student.display_name}
+                      </span>
+                    )}
+                    <span className={`rounded-full px-2 py-1 text-xs ${status.color}`}>
+                      {status.label}
+                    </span>
+                  </div>
                 </div>
               </Link>
             );
