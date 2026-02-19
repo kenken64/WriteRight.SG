@@ -174,7 +174,7 @@ export async function POST(
     return NextResponse.json({ error: `Failed to update submission: ${updateError.message}` }, { status: 500 });
   }
 
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(Buffer.from(pdfBytes), {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
