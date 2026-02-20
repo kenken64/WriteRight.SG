@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LogIn, Sparkles } from 'lucide-react';
 import { AnimatedCounter } from '@/components/marketing/animated-counter';
 import { AnimatedCard } from '@/components/ui/animated-card';
 import { StickyCta } from '@/components/marketing/sticky-cta';
@@ -23,11 +24,13 @@ export function LandingSg() {
             <Link href="#faq" className="hidden rounded-lg px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 sm:inline-block">
               FAQ
             </Link>
-            <Link href="/login" className="ml-1 rounded-[10px] border-[1.5px] border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:border-blue-600 hover:bg-blue-50 hover:text-blue-600">
-              Log in
+            <Link href="/login" className="ml-1 inline-flex items-center justify-center rounded-[10px] border-[1.5px] border-gray-200 p-2 text-gray-700 transition-all hover:border-blue-600 hover:bg-blue-50 hover:text-blue-600 sm:px-4 sm:py-2" title="Log in">
+              <LogIn className="h-4 w-4 sm:hidden" />
+              <span className="hidden text-sm font-semibold sm:inline">Log in</span>
             </Link>
-            <Link href="/register" className="rounded-[10px] bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-all hover:-translate-y-px hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/30">
-              Try Free
+            <Link href="/register" className="inline-flex items-center justify-center rounded-[10px] bg-blue-600 p-2 text-white shadow-sm shadow-blue-600/25 transition-all hover:-translate-y-px hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/30 sm:px-5 sm:py-2" title="Try Free">
+              <Sparkles className="h-4 w-4 sm:hidden" />
+              <span className="hidden text-sm font-semibold sm:inline">Try Free</span>
             </Link>
           </nav>
         </div>
