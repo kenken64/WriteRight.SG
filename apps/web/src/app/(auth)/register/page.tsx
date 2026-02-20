@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { registerSchema } from '@/lib/validators/schemas';
-import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 
 type Role = 'parent' | 'student';
 
@@ -20,8 +20,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const productName = brandedProductName();
-  const web = getWebVariantConfig();
+  const { productName, registerTagline, registerFeatures } = useVariant();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,11 +72,11 @@ export default function RegisterPage() {
             Start your journey<br />to better writing.
           </h2>
           <p className="mt-4 text-lg text-indigo-100 leading-relaxed">
-            {web.registerTagline}
+            {registerTagline}
           </p>
 
           <div className="mt-10 space-y-4">
-            {web.registerFeatures.map((item) => (
+            {registerFeatures.map((item) => (
               <div key={item.text} className="flex items-center gap-3">
                 <span className="text-xl">{item.emoji}</span>
                 <span className="text-indigo-100">{item.text}</span>

@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
-import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 
 export default function ResetPasswordPage() {
   return (
@@ -25,8 +25,7 @@ function ResetPasswordForm() {
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const productName = brandedProductName();
-  const web = getWebVariantConfig();
+  const { productName, authTagline: tagline } = useVariant();
 
   useEffect(() => {
     const t = searchParams.get('token');
@@ -94,7 +93,7 @@ function ResetPasswordForm() {
             Better essays start<br />with better feedback.
           </h2>
           <p className="mt-4 text-lg text-blue-100 leading-relaxed">
-            {web.authTagline}
+            {tagline}
           </p>
         </div>
 

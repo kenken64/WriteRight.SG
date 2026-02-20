@@ -6,7 +6,7 @@ import { InviteCodeCard } from '@/components/dashboard/invite-code-card';
 import { ClassCodeCard } from '@/components/dashboard/class-code-card';
 import { JoinClassCard } from '@/components/dashboard/join-class-card';
 import { readCsrfToken } from '@/lib/hooks/use-csrf-token';
-import { brandedProductName, getVariantConfig as getVConfig } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface LinkedChild {
@@ -56,6 +56,7 @@ async function saveSettings(data: { displayName?: string; notificationPrefs?: { 
 }
 
 export default function SettingsPage() {
+  const { productName, levelLabels } = useVariant();
   const qc = useQueryClient();
   const { data: settings, isLoading } = useQuery({ queryKey: ['settings'], queryFn: fetchSettings });
 
@@ -200,7 +201,7 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground">{child.email}</p>
                   </div>
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    {getVConfig().levelLabels[child.level] ?? child.level}
+                    {levelLabels[child.level] ?? child.level}
                   </span>
                 </div>
               ))}
@@ -254,7 +255,7 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold">Billing</h2>
           <p className="mt-2 text-sm text-muted-foreground">Current plan: Free</p>
           <button className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90">
-            Upgrade to {brandedProductName()} Plus
+            Upgrade to {productName} Plus
           </button>
         </section>
       </div>

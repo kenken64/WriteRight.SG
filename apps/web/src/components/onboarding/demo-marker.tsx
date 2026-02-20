@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { brandedProductName } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 
 interface DimensionDemo {
   name: string;
@@ -35,6 +35,7 @@ interface DemoMarkerProps {
 }
 
 export function DemoMarker({ onComplete }: DemoMarkerProps) {
+  const { productName } = useVariant();
   const [phase, setPhase] = useState<'intro' | 'scanning' | 'scoring' | 'complete'>('intro');
   const [currentDimension, setCurrentDimension] = useState(0);
   const [animatedScores, setAnimatedScores] = useState<number[]>([]);
@@ -111,7 +112,7 @@ export function DemoMarker({ onComplete }: DemoMarkerProps) {
       {phase === 'intro' && (
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            See how {brandedProductName()} analyses and scores an essay in real time
+            See how {productName} analyses and scores an essay in real time
           </p>
           <button
             onClick={startDemo}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getNavForRole, type UserRole } from '@/lib/utils/roles';
 import { useSidebar } from './sidebar-context';
-import { brandedProductName } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 import {
   ClipboardList, FileText, Lightbulb, Trophy, Star, Medal,
   Gift, BarChart3, Settings, LogOut, Menu, X, PenTool, Images,
@@ -64,7 +64,7 @@ export function DashboardSidebar({ role, userEmail, linkedMembers = [], parentTy
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
-  const productName = brandedProductName();
+  const { productName } = useVariant();
 
   const sidebarContent = (
     <>

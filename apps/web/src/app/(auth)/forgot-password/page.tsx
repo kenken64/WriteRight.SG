@@ -2,15 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const productName = brandedProductName();
-  const web = getWebVariantConfig();
+  const { productName, authTagline: tagline } = useVariant();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +56,7 @@ export default function ForgotPasswordPage() {
             Better essays start<br />with better feedback.
           </h2>
           <p className="mt-4 text-lg text-blue-100 leading-relaxed">
-            {web.authTagline}
+            {tagline}
           </p>
         </div>
 

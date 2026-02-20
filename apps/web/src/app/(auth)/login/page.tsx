@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { loginSchema } from '@/lib/validators/schemas';
-import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
+import { useVariant } from '@/components/providers/variant-provider';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,8 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const productName = brandedProductName();
-  const web = getWebVariantConfig();
+  const { productName, authTagline: tagline } = useVariant();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +65,7 @@ export default function LoginPage() {
             Better essays start<br />with better feedback.
           </h2>
           <p className="mt-4 text-lg text-blue-100 leading-relaxed">
-            {web.authTagline}
+            {tagline}
           </p>
 
           <div className="mt-10 grid grid-cols-2 gap-6">
