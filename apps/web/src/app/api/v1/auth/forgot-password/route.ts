@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
+import { getVariantConfig } from '@writeright/ai/shared/variant';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     const resend = new Resend(process.env.RESEND_API_KEY!);
-    const brandName = process.env.NEXT_PUBLIC_APP_NAME || 'WriteRight';
+    const brandName = process.env.NEXT_PUBLIC_APP_NAME || getVariantConfig().productName;
     const senderEmail = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
 
     await resend.emails.send({

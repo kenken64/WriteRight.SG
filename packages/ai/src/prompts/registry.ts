@@ -1,15 +1,15 @@
-import { MARKING_SW_V1 } from "./v1/marking-sw-v1";
-import { MARKING_CW_V1 } from "./v1/marking-cw-v1";
-import { REWRITE_V1 } from "./v1/rewrite-v1";
-import { TOPIC_GEN_V1 } from "./v1/topic-gen-v1";
+import { getMarkingSwV1 } from "./v1/marking-sw-v1";
+import { getMarkingCwV1 } from "./v1/marking-cw-v1";
+import { getRewriteV1 } from "./v1/rewrite-v1";
+import { getTopicGenV1 } from "./v1/topic-gen-v1";
 
 type PromptTemplate = { system: string; user: string };
 
-const PROMPTS: Record<string, PromptTemplate> = {
-  "marking-sw-v1": MARKING_SW_V1,
-  "marking-cw-v1": MARKING_CW_V1,
-  "rewrite-v1": REWRITE_V1,
-  "topic-gen-v1": TOPIC_GEN_V1,
+const PROMPT_GETTERS: Record<string, () => PromptTemplate> = {
+  "marking-sw-v1": getMarkingSwV1,
+  "marking-cw-v1": getMarkingCwV1,
+  "rewrite-v1": getRewriteV1,
+  "topic-gen-v1": getTopicGenV1,
 };
 
 function interpolate(template: string, vars: Record<string, string>): string {
@@ -25,8 +25,9 @@ function interpolate(template: string, vars: Record<string, string>): string {
 }
 
 export function getPrompt(key: string, vars: Record<string, string> = {}): { system: string; user: string } {
-  const template = PROMPTS[key];
-  if (!template) throw new Error(`Unknown prompt: ${key}`);
+  const getter = PROMPT_GETTERS[key];
+  if (!getter) throw new Error(`Unknown prompt: ${key}`);
+  const template = getter();
   return {
     system: interpolate(template.system, vars),
     user: interpolate(template.user, vars),
@@ -34,5 +35,5 @@ export function getPrompt(key: string, vars: Record<string, string> = {}): { sys
 }
 
 export function listPrompts(): string[] {
-  return Object.keys(PROMPTS);
+  return Object.keys(PROMPT_GETTERS);
 }

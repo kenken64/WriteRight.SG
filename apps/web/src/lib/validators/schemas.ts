@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getVariantConfig } from '@/lib/variant';
 
 // ─── Auth Forms ───
 export const loginSchema = z.object({
@@ -52,7 +53,7 @@ export const studentProfileSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   display_name: z.string(),
-  level: z.enum(['sec1', 'sec2', 'sec3', 'sec4', 'sec5']),
+  level: z.enum(getVariantConfig().levels as [string, ...string[]]),
   created_at: z.string(),
 });
 export type StudentProfile = z.infer<typeof studentProfileSchema>;
@@ -261,7 +262,7 @@ export type Subscription = z.infer<typeof subscriptionSchema>;
 export const generateTopicRequestSchema = z.object({
   source: z.enum(['upload', 'trending']),
   essayType: essayTypeSchema,
-  level: z.enum(['sec1', 'sec2', 'sec3', 'sec4', 'sec5']).optional(),
+  level: z.enum(getVariantConfig().levels as [string, ...string[]]).optional(),
   articleText: z.string().optional(),
   imageRefs: z.array(z.string()).optional(),
 });
@@ -277,7 +278,7 @@ export const rewriteRequestSchema = z.object({
 
 // ─── Onboarding ───
 export const studentOnboardSchema = z.object({
-  level: z.enum(['sec1', 'sec2', 'sec3', 'sec4', 'sec5']),
+  level: z.enum(getVariantConfig().levels as [string, ...string[]]),
   displayName: z.string().min(1).max(100),
 });
 export type StudentOnboardInput = z.infer<typeof studentOnboardSchema>;

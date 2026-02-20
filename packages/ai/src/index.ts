@@ -17,3 +17,5 @@ export type {
   StreakData,
 } from "./shared/types";
 export { AIError, OCRError, MarkingError, RewriteError, TopicGenerationError, RateLimitError } from "./shared/errors";
+export { getVariant, getVariantConfig } from "./shared/variant";
+export type { Variant, VariantConfig } from "./shared/variant";

@@ -2,20 +2,23 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/components/providers/query-provider';
+import { getWebVariantConfig } from '@/lib/variant';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 });
 
-export const metadata: Metadata = {
-  title: 'WriteRight SG — AI Essay Feedback for Singapore Secondary School Students',
-  description:
-    'Get instant, MOE-aligned feedback on your English essays. Aligned to the 1184 syllabus with situational and continuous writing rubrics.',
-  icons: {
-    icon: '/favicon.png',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const web = getWebVariantConfig();
+  return {
+    title: web.metaTitle,
+    description: web.metaDescription,
+    icons: {
+      icon: '/favicon.png',
+    },
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

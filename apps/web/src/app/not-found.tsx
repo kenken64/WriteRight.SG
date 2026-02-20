@@ -1,15 +1,20 @@
 import Link from 'next/link';
+import { getVariantConfig } from '@/lib/variant';
+import { getWebVariantConfig } from '@/lib/variant';
 
 export default function NotFound() {
+  const { productName } = getVariantConfig();
+  const web = getWebVariantConfig();
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" />
+            <img src="/logo.jpg" alt={productName} className="h-8 w-8 rounded-full object-cover" />
             <span className="text-xl font-bold text-gray-900">
-              WriteRight <span className="text-blue-600">SG</span>
+              {productName}
             </span>
           </Link>
           <nav className="flex items-center gap-3">
@@ -36,7 +41,7 @@ export default function NotFound() {
             404
           </span>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-5xl">✏️</span>
+            <span className="text-5xl">&#x270F;&#xFE0F;</span>
           </div>
         </div>
 
@@ -68,7 +73,7 @@ export default function NotFound() {
       <footer className="border-t bg-gray-50 py-6">
         <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} WriteRight SG. Built for Singapore students.
+            &copy; {new Date().getFullYear()} {productName}. {web.footerTagline}
           </p>
         </div>
       </footer>

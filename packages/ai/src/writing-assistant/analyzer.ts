@@ -1,8 +1,11 @@
 import { chatCompletion } from "../shared/openai-client";
 import { MODEL_FAST } from "../shared/model-config";
+import { getVariantConfig } from "../shared/variant";
 import type { AnalysisRequest, AnalysisResult } from "./types";
 
-const SYSTEM_PROMPT = `You are an essay analysis engine for Singapore secondary school students.
+function getSystemPrompt(): string {
+  const v = getVariantConfig();
+  return `${v.analyzerContext}
 Analyse the essay and return JSON with:
 - structure: array of { label, detected, paragraphIndex? } for Introduction, Body paragraphs, Conclusion
 - toneAssessment: { tone: string, appropriate: boolean, note?: string }
@@ -13,6 +16,7 @@ Analyse the essay and return JSON with:
 For situational writing, check formal/informal tone matches the task.
 For continuous writing, check narrative consistency.
 Return ONLY valid JSON.`;
+}
 
 export async function analyzeEssay(req: AnalysisRequest): Promise<AnalysisResult> {
   const wordCount = req.text.split(/\s+/).filter(Boolean).length;
@@ -29,7 +33,7 @@ Essay text:
 ${req.text}
 """`;
 
-  const raw = await chatCompletion(SYSTEM_PROMPT, userPrompt, {
+  const raw = await chatCompletion(getSystemPrompt(), userPrompt, {
     model: MODEL_FAST,
     temperature: 0.2,
     maxTokens: 1500,

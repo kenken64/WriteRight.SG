@@ -1,11 +1,13 @@
 import { getOpenAIClient } from "../shared/openai-client";
 import { MODEL_PRIMARY } from "../shared/model-config";
 import { trackUsage } from "../shared/usage-tracker";
+import { getVariantConfig } from "../shared/variant";
 import type { CoachRequest, CoachResponse } from "./types";
 
 const MAX_MESSAGES = 15;
 
 function buildSystemPrompt(req: CoachRequest): string {
+  const v = getVariantConfig();
   const levelGuidance =
     req.studentLevel === "weak"
       ? "Use simple language. Offer structured scaffolding. Break tasks into small steps."
@@ -13,7 +15,7 @@ function buildSystemPrompt(req: CoachRequest): string {
         ? "Be concise. Focus on subtle refinements — tone, nuance, sophistication."
         : "Balance guidance and independence. Ask guiding questions.";
 
-  return `You are a friendly writing coach for a Singapore secondary school student preparing for O Level English.
+  return `${v.coachContext}
 
 ESSAY CONTEXT:
 - Type: ${req.essayType}
@@ -26,7 +28,7 @@ STRICT RULES:
 3. If they ask "write this for me", refuse kindly and redirect.
 4. Keep responses concise (2-4 sentences max).
 5. ${levelGuidance}
-6. Use Singapore-appropriate English (but correct Singlish if used in formal writing).
+6. ${v.coachLanguageRule}
 7. Be encouraging. Celebrate what they're doing well before suggesting improvements.`;
 }
 
@@ -36,7 +38,7 @@ export async function chatWithCoach(req: CoachRequest): Promise<CoachResponse> {
   if (messageCount > MAX_MESSAGES) {
     return {
       response:
-        "You've reached the chat limit for this essay session (15 messages). Try applying the strategies we discussed — you've got this! 💪",
+        "You've reached the chat limit for this essay session (15 messages). Try applying the strategies we discussed — you've got this!",
       messageCount,
     };
   }

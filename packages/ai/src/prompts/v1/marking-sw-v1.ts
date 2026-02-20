@@ -1,7 +1,11 @@
-export const MARKING_SW_V1 = {
-  system: `You are an expert Singapore O-Level English Language examiner specialising in Situational Writing (Paper 1, Section A).
+import { getVariantConfig } from "../../shared/variant";
 
-You evaluate essays against the official MOE rubric with three dimensions:
+export function getMarkingSwV1() {
+  const v = getVariantConfig();
+  return {
+    system: `${v.markingSwExaminer}
+
+You evaluate essays against ${v.markingRubricSource} with three dimensions:
 1. Task Fulfilment (10 marks) — format compliance, tone, purpose, audience awareness, coverage of guiding points
 2. Language & Style (10 marks) — vocabulary, grammar, sentence variety, register appropriateness
 3. Organisation & Coherence (10 marks) — structure, paragraphing, transitions, logical flow
@@ -22,10 +26,10 @@ You MUST respond in JSON format with this structure:
   "reviewRecommended": <true if confidence < 0.7 or edge case>
 }
 
-Be encouraging but honest. Use Singapore English teaching terminology where appropriate.
-Calibrate to O-Level standard — Band 3 = average competent student, Band 5 = exceptional.`,
+Be encouraging but honest. Use ${v.terminology} where appropriate.
+${v.markingSwCalibration}`,
 
-  user: `Evaluate this situational writing piece.
+    user: `Evaluate this situational writing piece.
 
 **Essay Type:** {{essayType}} ({{essaySubType}})
 **Level:** {{level}}
@@ -40,4 +44,5 @@ Calibrate to O-Level standard — Band 3 = average competent student, Band 5 = e
 {{essayText}}
 
 Provide your evaluation in the JSON format specified.`,
-};
+  };
+}

@@ -1,14 +1,19 @@
 import { chatCompletion } from "../shared/openai-client";
 import { MODEL_FAST } from "../shared/model-config";
+import { getVariantConfig } from "../shared/variant";
 import type { LiveScoreRequest, LiveScoreResult } from "./types";
 
 const MODEL_ID = MODEL_FAST;
-const RUBRIC_VERSION = "sg-olevel-v1";
+
+function getRubricVersion(): string {
+  return getVariantConfig().rubricVersion;
+}
 
 function buildPrompt(req: LiveScoreRequest): { system: string; user: string } {
+  const v = getVariantConfig();
   const isSW = req.essayType === "situational";
 
-  const system = `You are an O Level English essay scorer for Singapore students.
+  const system = `${v.liveScorerIntro}
 Score the essay draft in progress. This is a LIVE estimate — the student is still writing.
 
 ${isSW ? `Situational Writing rubric (30 marks total):
@@ -46,6 +51,7 @@ ${req.text}
 
 export async function scoreLive(req: LiveScoreRequest): Promise<LiveScoreResult> {
   const paragraphCount = req.text.split(/\n\s*\n/).filter(Boolean).length;
+  const rubricVersion = getRubricVersion();
 
   if (!req.text || req.text.trim().length < 30) {
     return {
@@ -55,7 +61,7 @@ export async function scoreLive(req: LiveScoreRequest): Promise<LiveScoreResult>
       dimensions: [],
       nextBandTips: [{ dimension: "General", tip: "Start writing to see your live score!", potentialGain: 0 }],
       paragraphCount: 0,
-      rubricVersion: req.rubricVersion ?? RUBRIC_VERSION,
+      rubricVersion: req.rubricVersion ?? rubricVersion,
       modelId: MODEL_ID,
     };
   }
@@ -89,7 +95,7 @@ export async function scoreLive(req: LiveScoreRequest): Promise<LiveScoreResult>
         potentialGain: t.potentialGain ?? 0,
       })),
       paragraphCount,
-      rubricVersion: req.rubricVersion ?? RUBRIC_VERSION,
+      rubricVersion: req.rubricVersion ?? rubricVersion,
       modelId: MODEL_ID,
     };
   } catch {
@@ -100,7 +106,7 @@ export async function scoreLive(req: LiveScoreRequest): Promise<LiveScoreResult>
       dimensions: [],
       nextBandTips: [],
       paragraphCount,
-      rubricVersion: req.rubricVersion ?? RUBRIC_VERSION,
+      rubricVersion: req.rubricVersion ?? rubricVersion,
       modelId: MODEL_ID,
     };
   }

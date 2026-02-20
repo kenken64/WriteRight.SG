@@ -6,6 +6,7 @@ import { InviteCodeCard } from '@/components/dashboard/invite-code-card';
 import { ClassCodeCard } from '@/components/dashboard/class-code-card';
 import { JoinClassCard } from '@/components/dashboard/join-class-card';
 import { readCsrfToken } from '@/lib/hooks/use-csrf-token';
+import { brandedProductName, getVariantConfig as getVConfig } from '@/lib/variant';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface LinkedChild {
@@ -199,12 +200,7 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground">{child.email}</p>
                   </div>
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    {child.level === 'sec1' ? 'Sec 1'
-                      : child.level === 'sec2' ? 'Sec 2'
-                      : child.level === 'sec3' ? 'Sec 3'
-                      : child.level === 'sec4' ? 'Sec 4'
-                      : child.level === 'sec5' ? 'Sec 5'
-                      : child.level}
+                    {getVConfig().levelLabels[child.level] ?? child.level}
                   </span>
                 </div>
               ))}
@@ -258,7 +254,7 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold">Billing</h2>
           <p className="mt-2 text-sm text-muted-foreground">Current plan: Free</p>
           <button className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90">
-            Upgrade to WriteRight Plus
+            Upgrade to {brandedProductName()} Plus
           </button>
         </section>
       </div>

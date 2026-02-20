@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const productName = brandedProductName();
+  const web = getWebVariantConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,22 +48,21 @@ export default function ForgotPasswordPage() {
       <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-between bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center gap-3"><img src="/logo.jpg" alt="WriteRight SG" className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">WriteRight SG</span></div>
+            <div className="flex items-center gap-3"><img src="/logo.jpg" alt={productName} className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">{productName}</span></div>
           </Link>
         </div>
-        
+
         <div>
           <h2 className="text-3xl font-bold leading-tight">
             Better essays start<br />with better feedback.
           </h2>
           <p className="mt-4 text-lg text-blue-100 leading-relaxed">
-            AI-powered marking aligned to Singapore&apos;s secondary school English syllabus. 
-            Get instant, specific feedback that helps you improve.
+            {web.authTagline}
           </p>
         </div>
-        
+
         <p className="text-sm text-blue-200">
-          © {new Date().getFullYear()} WriteRight SG
+          &copy; {new Date().getFullYear()} {productName}
         </p>
       </div>
 
@@ -70,7 +72,7 @@ export default function ForgotPasswordPage() {
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center gap-2"><img src="/logo.jpg" alt="WriteRight SG" className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span></div>
+              <div className="flex items-center gap-2"><img src="/logo.jpg" alt={productName} className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">{productName}</span></div>
             </Link>
           </div>
 
@@ -84,7 +86,7 @@ export default function ForgotPasswordPage() {
           {submitted ? (
             <div className="mt-8 space-y-5">
               <div className="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700">
-                <span className="mt-0.5">✅</span>
+                <span className="mt-0.5">&#x2705;</span>
                 <span>If an account exists with this email, you&apos;ll receive a reset link shortly. Check your inbox (and spam folder).</span>
               </div>
               <Link
@@ -98,11 +100,11 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
               {error && (
                 <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                  <span className="mt-0.5">⚠️</span>
+                  <span className="mt-0.5">&#x26A0;&#xFE0F;</span>
                   <span>{error}</span>
                 </div>
               )}
-              
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email address
@@ -117,7 +119,7 @@ export default function ForgotPasswordPage() {
                   className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
-              
+
               <button
                 type="submit"
                 disabled={loading}
@@ -138,7 +140,7 @@ export default function ForgotPasswordPage() {
 
               <div className="text-center">
                 <Link href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-700">
-                  ← Back to login
+                  &larr; Back to login
                 </Link>
               </div>
             </form>

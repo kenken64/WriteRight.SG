@@ -1,8 +1,11 @@
 import { chatCompletion } from "../shared/openai-client";
 import { MODEL_FAST } from "../shared/model-config";
+import { getVariantConfig } from "../shared/variant";
 import type { GrammarCheckRequest, GrammarCheckResult, GrammarAnnotation } from "./types";
 
-const SYSTEM_PROMPT = `You are a grammar checker for Singapore secondary school English essays.
+function getSystemPrompt(): string {
+  const v = getVariantConfig();
+  return `${v.grammarContext}
 Check the text for: grammar errors, spelling mistakes, weak vocabulary, run-on sentences (>35 words), and excessive passive voice.
 
 Return JSON with "annotations" array. Each annotation:
@@ -23,6 +26,7 @@ RULES:
 - Don't flag everything — focus on the most impactful 5-10 issues
 - Keep explanations simple and educational
 - Return ONLY valid JSON with "annotations" key`;
+}
 
 export async function checkGrammar(req: GrammarCheckRequest): Promise<GrammarCheckResult> {
   if (!req.text || req.text.trim().length < 10) {
@@ -31,7 +35,7 @@ export async function checkGrammar(req: GrammarCheckRequest): Promise<GrammarChe
 
   const userPrompt = `Check this ${req.essayType ?? "essay"} text:\n\n"""${req.text}"""`;
 
-  const raw = await chatCompletion(SYSTEM_PROMPT, userPrompt, {
+  const raw = await chatCompletion(getSystemPrompt(), userPrompt, {
     model: MODEL_FAST,
     temperature: 0.1,
     maxTokens: 2000,

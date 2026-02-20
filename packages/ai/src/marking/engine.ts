@@ -5,6 +5,7 @@ import { getPrompt } from "../prompts/registry";
 import { getSituationalRubric } from "./rubrics/situational";
 import { getContinuousRubric } from "./rubrics/continuous";
 import { validateEvaluation } from "./validator";
+import { getVariantConfig } from "../shared/variant";
 import type { EvaluationResult } from "../shared/types";
 
 export interface MarkingInput {
@@ -29,7 +30,7 @@ export async function evaluateEssay(input: MarkingInput): Promise<EvaluationResu
     prompt: input.prompt,
     guidingPoints: input.guidingPoints?.join("\n") ?? "",
     rubric: JSON.stringify(rubric),
-    level: input.level ?? "sec4",
+    level: input.level ?? getVariantConfig().defaultLevel,
   });
 
   const rawResult = await withRetry(

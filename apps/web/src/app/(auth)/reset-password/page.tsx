@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
+import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
 
 export default function ResetPasswordPage() {
   return (
@@ -24,6 +25,8 @@ function ResetPasswordForm() {
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const productName = brandedProductName();
+  const web = getWebVariantConfig();
 
   useEffect(() => {
     const t = searchParams.get('token');
@@ -82,22 +85,21 @@ function ResetPasswordForm() {
       <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-between bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center gap-3"><img src="/logo.jpg" alt="WriteRight SG" className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">WriteRight SG</span></div>
+            <div className="flex items-center gap-3"><img src="/logo.jpg" alt={productName} className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">{productName}</span></div>
           </Link>
         </div>
-        
+
         <div>
           <h2 className="text-3xl font-bold leading-tight">
             Better essays start<br />with better feedback.
           </h2>
           <p className="mt-4 text-lg text-blue-100 leading-relaxed">
-            AI-powered marking aligned to Singapore&apos;s secondary school English syllabus. 
-            Get instant, specific feedback that helps you improve.
+            {web.authTagline}
           </p>
         </div>
-        
+
         <p className="text-sm text-blue-200">
-          © {new Date().getFullYear()} WriteRight SG
+          &copy; {new Date().getFullYear()} {productName}
         </p>
       </div>
 
@@ -107,7 +109,7 @@ function ResetPasswordForm() {
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center gap-2"><img src="/logo.jpg" alt="WriteRight SG" className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span></div>
+              <div className="flex items-center gap-2"><img src="/logo.jpg" alt={productName} className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">{productName}</span></div>
             </Link>
           </div>
 
@@ -121,7 +123,7 @@ function ResetPasswordForm() {
           {success ? (
             <div className="mt-8 space-y-5">
               <div className="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700">
-                <span className="mt-0.5">✅</span>
+                <span className="mt-0.5">&#x2705;</span>
                 <span>Password updated successfully! Redirecting to login...</span>
               </div>
             </div>
@@ -129,11 +131,11 @@ function ResetPasswordForm() {
             <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
               {error && (
                 <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                  <span className="mt-0.5">⚠️</span>
+                  <span className="mt-0.5">&#x26A0;&#xFE0F;</span>
                   <span>{error}</span>
                 </div>
               )}
-              
+
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   New password
@@ -183,7 +185,7 @@ function ResetPasswordForm() {
                   </button>
                 </div>
               </div>
-              
+
               <button
                 type="submit"
                 disabled={loading || !token}
@@ -204,7 +206,7 @@ function ResetPasswordForm() {
 
               <div className="text-center">
                 <Link href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-700">
-                  ← Back to login
+                  &larr; Back to login
                 </Link>
               </div>
             </form>

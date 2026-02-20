@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getNavForRole, type UserRole } from '@/lib/utils/roles';
 import { useSidebar } from './sidebar-context';
+import { brandedProductName } from '@/lib/variant';
 import {
   ClipboardList, FileText, Lightbulb, Trophy, Star, Medal,
   Gift, BarChart3, Settings, LogOut, Menu, X, PenTool, Images,
@@ -63,13 +64,15 @@ export function DashboardSidebar({ role, userEmail, linkedMembers = [], parentTy
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
+  const productName = brandedProductName();
+
   const sidebarContent = (
     <>
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary">
-            <img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" />
-            WriteRight SG
+            <img src="/logo.jpg" alt={productName} className="h-8 w-8 rounded-full object-cover" />
+            {productName}
           </Link>
           {/* Close button - mobile only */}
           <button
@@ -159,8 +162,8 @@ export function DashboardSidebar({ role, userEmail, linkedMembers = [], parentTy
             <Menu className="h-5 w-5" />
           </button>
           <h1 className="flex-1 text-center text-lg font-bold text-primary flex items-center justify-center gap-2">
-            <img src="/logo.jpg" alt="WriteRight AI" className="h-7 w-7 rounded-full object-cover" />
-            WriteRight SG
+            <img src="/logo.jpg" alt={productName} className="h-7 w-7 rounded-full object-cover" />
+            {productName}
           </h1>
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs capitalize text-primary">
             {role === 'parent' && parentType ? (PARENT_TYPE_LABELS[parentType] ?? 'Parent') : role}

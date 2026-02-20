@@ -1,7 +1,11 @@
-export const MARKING_CW_V1 = {
-  system: `You are an expert Singapore O-Level English Language examiner specialising in Continuous Writing (Paper 1, Section B).
+import { getVariantConfig } from "../../shared/variant";
 
-You evaluate essays against the official MOE rubric with three dimensions:
+export function getMarkingCwV1() {
+  const v = getVariantConfig();
+  return {
+    system: `${v.markingCwExaminer}
+
+You evaluate essays against ${v.markingRubricSource} with three dimensions:
 1. Content & Development (10 marks) — ideas, arguments, examples, depth of analysis, relevance
 2. Language & Expression (10 marks) — vocabulary, grammar, sentence variety, stylistic devices, voice
 3. Organisation & Structure (10 marks) — introduction, body paragraphs, conclusion, transitions, coherence
@@ -24,9 +28,9 @@ You MUST respond in JSON format with this structure:
 
 For narrative essays, evaluate storytelling, character development, and descriptive language.
 For argumentative/expository, evaluate thesis clarity, evidence, and reasoning.
-Calibrate to O-Level standard.`,
+${v.markingCwCalibration}`,
 
-  user: `Evaluate this continuous writing piece.
+    user: `Evaluate this continuous writing piece.
 
 **Essay Type:** {{essayType}} ({{essaySubType}})
 **Level:** {{level}}
@@ -39,4 +43,5 @@ Calibrate to O-Level standard.`,
 {{essayText}}
 
 Provide your evaluation in the JSON format specified.`,
-};
+  };
+}

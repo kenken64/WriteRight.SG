@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { SidebarProvider } from '@/components/dashboard/sidebar-context';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { BottomNav } from '@/components/dashboard/bottom-nav';
+import { getVariantConfig } from '@/lib/variant';
 
 const PARENT_TYPE_LABELS: Record<string, string> = {
   parent: 'Parent',
@@ -10,15 +11,8 @@ const PARENT_TYPE_LABELS: Record<string, string> = {
   tuition_teacher: 'Tuition Teacher',
 };
 
-const LEVEL_LABELS: Record<string, string> = {
-  sec1: 'Sec 1',
-  sec2: 'Sec 2',
-  sec3: 'Sec 3',
-  sec4: 'Sec 4',
-  sec5: 'Sec 5',
-};
-
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const LEVEL_LABELS = getVariantConfig().levelLabels;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

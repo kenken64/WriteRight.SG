@@ -3,6 +3,7 @@ import { RewriteError, withRetry } from "../shared/errors";
 import { getPrompt } from "../prompts/registry";
 import { computeDiff } from "./diff";
 import { calculateTargetBand } from "./band-target";
+import { getVariantConfig } from "../shared/variant";
 import type { RewriteResult, EvaluationResult } from "../shared/types";
 
 export interface RewriteInput {
@@ -43,9 +44,10 @@ export async function rewriteEssay(input: RewriteInput): Promise<RewriteResult> 
     throw new RewriteError("Failed to parse rewrite response");
   }
 
+  const config = getVariantConfig();
   const rewrittenText = parsed.rewrittenText ?? "";
   const diffPayload = computeDiff(input.essayText, rewrittenText);
-  const paragraphAnnotations = Array.isArray(parsed.paragraphAnnotations)
+  const paragraphAnnotations = config.rewriteRichOutput && Array.isArray(parsed.paragraphAnnotations)
     ? parsed.paragraphAnnotations.map((a: any) => ({
         paragraphIndex: a.paragraphIndex ?? 0,
         originalSnippet: a.originalSnippet ?? "",
@@ -59,7 +61,7 @@ export async function rewriteEssay(input: RewriteInput): Promise<RewriteResult> 
     rewrittenText,
     diffPayload,
     rationale: parsed.rationale ?? {},
-    bandJustification: parsed.bandJustification ?? null,
+    bandJustification: config.rewriteRichOutput ? (parsed.bandJustification ?? null) : null,
     paragraphAnnotations,
     targetBand,
   };

@@ -1,8 +1,11 @@
 import { chatCompletion } from "../shared/openai-client";
 import { MODEL_PRIMARY } from "../shared/model-config";
+import { getVariantConfig } from "../shared/variant";
 import type { OutlineRequest, OutlineResult } from "./types";
 
-const SYSTEM_PROMPT = `You are a writing coach helping Singapore secondary school students plan essays.
+function getSystemPrompt(): string {
+  const v = getVariantConfig();
+  return `${v.outlineContext}
 Given a topic and essay type, suggest outline points. Do NOT write the essay — only suggest structure and brief point ideas.
 
 Return JSON with "sections" array:
@@ -21,13 +24,14 @@ Return JSON with "sections" array:
 For situational writing, include: purpose, audience, format, and ensure given points are covered.
 Suggestions should be brief guiding ideas (not full sentences to copy).
 Return ONLY valid JSON.`;
+}
 
 export async function generateOutline(req: OutlineRequest): Promise<OutlineResult> {
   const userPrompt = `Topic: ${req.topic}
 Essay type: ${req.essayType}
 ${req.guidingPoints?.length ? `Guiding points from assignment:\n${req.guidingPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")}` : ""}`;
 
-  const raw = await chatCompletion(SYSTEM_PROMPT, userPrompt, {
+  const raw = await chatCompletion(getSystemPrompt(), userPrompt, {
     model: MODEL_PRIMARY,
     temperature: 0.5,
     maxTokens: 1200,

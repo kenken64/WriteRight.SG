@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { registerSchema } from '@/lib/validators/schemas';
+import { brandedProductName, getWebVariantConfig } from '@/lib/variant';
 
 type Role = 'parent' | 'student';
 
@@ -19,6 +20,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const productName = brandedProductName();
+  const web = getWebVariantConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,25 +64,20 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-between bg-gradient-to-br from-indigo-600 to-blue-700 p-12 text-white">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center gap-3"><img src="/logo.jpg" alt="WriteRight AI" className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">WriteRight SG</span></div>
+            <div className="flex items-center gap-3"><img src="/logo.jpg" alt={productName} className="h-10 w-10 rounded-full object-cover" /><span className="text-2xl font-bold">{productName}</span></div>
           </Link>
         </div>
-        
+
         <div>
           <h2 className="text-3xl font-bold leading-tight">
             Start your journey<br />to better writing.
           </h2>
           <p className="mt-4 text-lg text-indigo-100 leading-relaxed">
-            Join thousands of Singapore students improving their English essays with AI-powered feedback.
+            {web.registerTagline}
           </p>
-          
+
           <div className="mt-10 space-y-4">
-            {[
-              { emoji: '📊', text: 'MOE 1184 aligned scoring' },
-              { emoji: '✏️', text: 'Built-in editor with AI coach' },
-              { emoji: '🏆', text: 'Achievement badges & rewards' },
-              { emoji: '📈', text: 'Track improvement over time' },
-            ].map((item) => (
+            {web.registerFeatures.map((item) => (
               <div key={item.text} className="flex items-center gap-3">
                 <span className="text-xl">{item.emoji}</span>
                 <span className="text-indigo-100">{item.text}</span>
@@ -87,9 +85,9 @@ export default function RegisterPage() {
             ))}
           </div>
         </div>
-        
+
         <p className="text-sm text-indigo-200">
-          © {new Date().getFullYear()} WriteRight SG
+          &copy; {new Date().getFullYear()} {productName}
         </p>
       </div>
 
@@ -99,7 +97,7 @@ export default function RegisterPage() {
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center gap-2"><img src="/logo.jpg" alt="WriteRight AI" className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">WriteRight <span className="text-blue-600">SG</span></span></div>
+              <div className="flex items-center gap-2"><img src="/logo.jpg" alt={productName} className="h-8 w-8 rounded-full object-cover" /><span className="text-xl font-bold text-gray-900">{productName}</span></div>
             </Link>
           </div>
 
@@ -116,7 +114,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
             {error && (
               <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                <span className="mt-0.5">⚠️</span>
+                <span className="mt-0.5">&#x26A0;&#xFE0F;</span>
                 <span>{error}</span>
               </div>
             )}
@@ -131,12 +129,12 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setRole(r)}
                     className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all ${
-                      role === r 
-                        ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                      role === r
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
                         : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
-                    <span>{r === 'parent' ? '👨‍👩‍👧' : '🎓'}</span>
+                    <span>{r === 'parent' ? '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}' : '\u{1F393}'}</span>
                     <span className="capitalize">{r}</span>
                   </button>
                 ))}
@@ -226,7 +224,7 @@ export default function RegisterPage() {
             </button>
 
             <p className="text-center text-xs text-gray-400">
-              🎁 Includes 7-day free trial of WriteRight Plus
+              Includes 7-day free trial of {productName} Plus
             </p>
           </form>
 

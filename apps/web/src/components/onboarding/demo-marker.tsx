@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { brandedProductName } from '@/lib/variant';
 
 interface DimensionDemo {
   name: string;
@@ -110,7 +111,7 @@ export function DemoMarker({ onComplete }: DemoMarkerProps) {
       {phase === 'intro' && (
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            See how WriteRight analyses and scores an essay in real time
+            See how {brandedProductName()} analyses and scores an essay in real time
           </p>
           <button
             onClick={startDemo}

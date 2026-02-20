@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createAdminSupabaseClient } from "@/lib/supabase/server";
 import { evaluateEssay } from "@writeright/ai/marking/engine";
 import { runPreEvaluationChecks } from "@writeright/ai/marking/pre-checks";
+import { getVariantConfig } from "@writeright/ai/shared/variant";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       essaySubType: submission.assignment?.essay_sub_type ?? undefined,
       prompt: submission.assignment?.prompt ?? "",
       guidingPoints: submission.assignment?.guiding_points ?? undefined,
-      level: "sec4",
+      level: getVariantConfig().defaultLevel,
     });
 
     const evaluation = {
